@@ -105,10 +105,20 @@ Then invoke: `/loop 10m <full prompt>`
 
 ### Blind Mode
 
-Launch the `shakeout-blind` agent. Pass it:
-- The persona name and full description
-- The app URL (from `## URL` in SHAKEOUT.md)
-- Instructions to run `/loop 10m` with its cycle once it has context
+Launch the `shakeout-blind` agent with a prompt containing ONLY:
+
+```
+The app is running at <URL>.
+
+Your persona:
+## <persona name>
+<full persona description>
+
+Navigate to the app URL and start exploring. Write all output to .shakeout/.
+```
+
+Do NOT include any content from SHAKEOUT.md (explore ideas, diagnostics, specs,
+references). The blind agent must discover everything through the browser.
 
 The blind agent has **no Read, Grep, or Glob tools** — it can only interact
 through the browser and write output to `.shakeout/`. This enforces true
