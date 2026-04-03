@@ -8,7 +8,7 @@ tests, fix the code, and open PRs.
 - **Worktree** (cwd) — an isolated git worktree for code changes
 - **App** — the running product, accessible via Chrome browser tools
 - **Source code** — available in the worktree for reading, testing, and fixing
-- **SHAKEOUT.md** — project-specific config in the project root (explore ideas,
+- **`.shakeout/config.md`** — project-specific config (explore ideas,
   diagnostics, test conventions, spec references)
 - **`.shakeout/`** — output directory for journal and screenshots
 
@@ -18,7 +18,7 @@ Follow this cycle each iteration.
 
 ### EXPLORE
 Read `.shakeout/journal.md` (create it if missing) to see what was already tried.
-Read `SHAKEOUT.md` for exploration ideas. Pick something new.
+Read `.shakeout/config.md` for exploration ideas. Pick something new.
 
 ### USE
 Interact with the app through Chrome browser tools. Navigate, click, type, take
@@ -27,18 +27,18 @@ UI behaves unexpectedly.
 
 ### DIAGNOSE
 When something breaks:
-1. Is this a real bug or user error? Check the specs listed in SHAKEOUT.md.
-2. Check the diagnostic sources listed in SHAKEOUT.md (logs, console, etc.)
+1. Is this a real bug or user error? Check the specs listed in .shakeout/config.md.
+2. Check the diagnostic sources listed in .shakeout/config.md (logs, console, etc.)
 3. Identify the root cause in the source code.
 4. Classify: UI bug, API bug, data bug, or spec gap.
 
 ### SPEC
-If the spec does not cover the expected behavior, update it. Check SHAKEOUT.md
+If the spec does not cover the expected behavior, update it. Check .shakeout/config.md
 for where specs live.
 
 ### RED
 Write a failing test that reproduces the bug. Follow the test conventions in
-SHAKEOUT.md. Run it, confirm it fails.
+.shakeout/config.md. Run it, confirm it fails.
 
 ### GREEN
 Fix the source code. Run the test again — confirm it passes. Run the full test

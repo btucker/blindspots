@@ -28,8 +28,8 @@ claude --plugin-dir ~/projects/shakeout
 
 ### Guided
 
-The default. Claude gets the full `SHAKEOUT.md` — specs, exploration ideas — and
-tests the product against known requirements.
+The default. Claude gets the full `.shakeout/config.md` — specs, exploration
+ideas — and tests the product against known requirements.
 
 **Finds**: bugs, regressions, spec violations, edge cases.
 
@@ -53,18 +53,16 @@ the real ones, producing a report with:
 ## Personas
 
 Each run is driven by a persona that shapes how Claude explores. If
-`SHAKEOUT-PERSONAS.md` doesn't exist, the `/shakeout` command generates one
-using Claude based on the project's README, specs, and SHAKEOUT.md.
+`.shakeout/personas.md` doesn't exist, the `/shakeout` command generates one
+using Claude — grounded in web research about the product's target audience.
 
 - **Random** (default): picks a random persona each run
 - **Named**: `--persona "power"` matches by substring
-- **Fallback**: uses `## Persona` from SHAKEOUT.md, or a generic first-time user
+- **Fallback**: uses a generic first-time user
 
 ## Project Setup
 
-### SHAKEOUT.md
-
-Add to your project root:
+Create a `.shakeout/` directory in your project with a `config.md`:
 
 ```markdown
 # My App Shakeout
@@ -94,33 +92,34 @@ path/to/SPECS.md
 Pointers to specs, design docs, and other sources of truth.
 ```
 
-### Sections
+### Config Sections
 
 | Section | Required | Used in Blind | Purpose |
 |---------|----------|---------------|---------|
-| Setup | Yes | Yes | Install and start commands |
-| URL | Yes | Yes | Where the app is running |
+| Setup | Yes | Yes (via command) | Install and start commands |
+| URL | Yes | Yes (via command) | Where the app is running |
 | Explore | Yes | No | What to test (with spec IDs) |
 | Diagnose | Yes | No | Where to look when things break |
-| Test | Yes | Yes | How to write and run tests |
+| Test | Yes | No | How to write and run tests |
 | Specs | No | Yes (comparison) | Path to specs file for comparison |
 | Reference | No | No | Docs and design specs |
 
-## Output
+## The .shakeout/ Directory
 
-All output lives in `.shakeout/` (add to `.gitignore` if desired):
+Everything shakeout-related lives in `.shakeout/`. Config is checked in, session
+output is gitignored.
 
-### Guided mode
-- `.shakeout/journal.md` — log of what was explored and found
-- `.shakeout/screenshots/` — evidence captured during testing
-- PRs with failing tests + fixes (in the worktree itself)
-
-### Blind mode
-- `.shakeout/journal.md` — exploration log with persona check-ins
-- `.shakeout/discovered-specs.md` — specs written from observation
-- `.shakeout/reactions.md` — persona's emotional reactions
-- `.shakeout/comparison.md` — discovered vs actual spec analysis
-- `.shakeout/screenshots/` — evidence captured during exploration
+```
+.shakeout/
+├── config.md              # checked in — project testing config
+├── personas.md            # checked in — generated user personas
+├── .gitignore             # ignores session output below
+├── journal.md             # session log
+├── discovered-specs.md    # blind mode — specs from observation
+├── reactions.md           # blind mode — persona emotional responses
+├── comparison.md          # blind mode — discovered vs actual analysis
+└── screenshots/           # evidence captured during testing
+```
 
 ## Plugin Structure
 

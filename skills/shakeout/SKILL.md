@@ -1,6 +1,6 @@
 ---
 name: shakeout
-description: This skill should be used when the user is running an exploratory testing session, when ".shakeout/" directory or "SHAKEOUT.md" exists in the project, when the user mentions "shakeout", "exploratory testing", or when working in a git branch starting with "shakeout/".
+description: This skill should be used when the user is running an exploratory testing session, when a ".shakeout/" directory exists in the project, when the user mentions "shakeout" or "exploratory testing", or when working in a git branch starting with "shakeout/".
 ---
 
 # Shakeout — Exploratory Testing Skill
@@ -17,8 +17,8 @@ tests, fixing code, and opening PRs. Sessions run in isolated git worktrees.
 ## Modes
 
 ### Guided Mode
-Test the product against known specs and requirements. The project's `SHAKEOUT.md`
-defines what to explore, how to diagnose, and where specs live.
+Test the product against known specs and requirements. The project's
+`.shakeout/config.md` defines what to explore, how to diagnose, and where specs live.
 
 ### Blind Mode
 A **separate agent** (`shakeout-blind`) explores with NO access to source code,
@@ -26,9 +26,19 @@ specs, or documentation. The agent's tools are restricted to browser interaction
 and writing output files — it literally cannot read project files. This enforces
 true isolation, not just an honor system.
 
-## Output Directory
+## The .shakeout/ Directory
 
-All shakeout output lives in `.shakeout/`:
+Everything lives in `.shakeout/`. Config and personas are checked in; session
+output is gitignored.
+
+### Config (checked in)
+
+| File | Purpose |
+|------|---------|
+| `.shakeout/config.md` | Project-specific testing config (setup, URL, explore, diagnose, test, specs) |
+| `.shakeout/personas.md` | Pool of user personas for testing |
+
+### Output (gitignored)
 
 | File | Mode | Purpose |
 |------|------|---------|
@@ -37,13 +47,6 @@ All shakeout output lives in `.shakeout/`:
 | `.shakeout/reactions.md` | Blind | Persona's emotional reactions |
 | `.shakeout/comparison.md` | Blind | Discovered vs actual spec analysis |
 | `.shakeout/screenshots/` | Both | Evidence captured during exploration |
-
-## Project Config Files
-
-| File | Purpose |
-|------|---------|
-| `SHAKEOUT.md` | Project-specific testing config (explore, diagnose, test) |
-| `SHAKEOUT-PERSONAS.md` | Pool of user personas for testing |
 
 ## Core Cycle
 
@@ -71,4 +74,4 @@ Detailed cycle instructions are in the references directory:
 
 - **`references/guided-cycle.md`** — Full guided cycle instructions
 - **`references/compare-prompt.md`** — Spec comparison methodology
-- **`references/persona-template.md`** — Template for generating SHAKEOUT-PERSONAS.md
+- **`references/persona-template.md`** — Template for generating personas

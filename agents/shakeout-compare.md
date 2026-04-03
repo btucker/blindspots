@@ -14,7 +14,7 @@ actual specifications.
 
 Three file paths will be provided:
 1. **Discovered specs** — `.shakeout/discovered-specs.md` (written during blind exploration)
-2. **Actual specs** — the project's real specs file (path from SHAKEOUT.md `## Specs`)
+2. **Actual specs** — the project's real specs file (path from .shakeout/config.md `## Specs`)
 3. **Reactions** — `.shakeout/reactions.md` (persona's emotional responses, if it exists)
 
 ## Process
