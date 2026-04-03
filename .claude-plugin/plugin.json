@@ -1,0 +1,5 @@
+{
+  "name": "shakeout",
+  "version": "1.0.0",
+  "description": "Automated exploratory testing — use the product as a real user to find bugs, write tests, and open PRs"
+}
