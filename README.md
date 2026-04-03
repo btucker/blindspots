@@ -7,11 +7,6 @@ and opening PRs.
 ## Install
 
 ```bash
-claude plugin add ~/projects/shakeout
-```
-
-Or test without installing:
-```bash
 claude --plugin-dir ~/projects/shakeout
 ```
 
