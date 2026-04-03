@@ -86,7 +86,9 @@ Where to look when things break (logs, console, API endpoints).
 Framework, import conventions, how to run tests.
 
 ## Specs
-path/to/SPECS.md
+- SPECS.md — main requirements
+- docs/specs/*.md — design specs
+- docs/plans/*.md — implementation plans
 
 ## Reference
 Pointers to specs, design docs, and other sources of truth.
@@ -101,7 +103,7 @@ Pointers to specs, design docs, and other sources of truth.
 | Explore | Yes | No | What to test (with spec IDs) |
 | Diagnose | Yes | No | Where to look when things break |
 | Test | Yes | No | How to write and run tests |
-| Specs | No | Yes (comparison) | Path to specs file for comparison |
+| Specs | No | Yes (comparison) | Paths/globs to spec files (one per line) |
 | Reference | No | No | Docs and design specs |
 
 ## The .shakeout/ Directory

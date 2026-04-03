@@ -30,9 +30,10 @@ If no arguments are provided, run in guided mode with a random persona.
 Check if `.shakeout/personas.md` exists. If it does NOT exist, generate it using
 the template in `${CLAUDE_PLUGIN_ROOT}/skills/shakeout/references/persona-template.md`.
 
-1. Read the project's `README.md`, `.shakeout/config.md`, and any file referenced
-   in the `## Specs` section of `.shakeout/config.md` (first 8000 chars of specs)
-2. Read the persona template from the reference file
+1. Read the project's `README.md` and `.shakeout/config.md`
+2. Resolve the spec sources from the `## Specs` section (see "Resolving Specs" below)
+   and read the first ~2000 chars of each resolved file for context
+3. Read the persona template from the reference file
 3. **Research the target audience.** Use web searches to ground personas in real data:
    - Search for the product's user demographic (e.g., "college student internship
      search behavior 2025", "first-generation college student career planning challenges")
@@ -131,6 +132,27 @@ the `shakeout-compare` agent to compare discovered specs against the actual spec
 Pass it:
 - The path to `.shakeout/discovered-specs.md`
 - The path to `.shakeout/reactions.md`
-- The path to the specs file (from `## Specs` in `.shakeout/config.md`)
+- All resolved spec file paths (from `## Specs` in `.shakeout/config.md`)
 
 The comparison report will be written to `.shakeout/comparison.md`.
+
+## Resolving Specs
+
+The `## Specs` section in `.shakeout/config.md` lists spec sources, one per line.
+Each line has a path (or glob) and an optional `—` description:
+
+```
+- SPECS.md — main requirements
+- docs/specs/*.md — design specs
+- docs/plans/*.md — implementation plans
+```
+
+To resolve:
+1. Strip the leading `- ` and any `— description` suffix from each line
+2. Trim whitespace to get the raw path/glob
+3. Use the Glob tool to expand patterns (e.g., `docs/specs/*.md` → list of files)
+4. Plain file paths resolve directly
+
+The resolved list of files is used for:
+- **Persona generation** (Step 3) — read first ~2000 chars of each for context
+- **Comparison** (Step 8) — pass all paths to the compare agent
