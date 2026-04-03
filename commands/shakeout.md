@@ -33,9 +33,18 @@ generate it using the template in `${CLAUDE_PLUGIN_ROOT}/skills/shakeout/referen
 1. Read the project's `README.md`, `SHAKEOUT.md`, and any file referenced in the
    `## Specs` section of `SHAKEOUT.md` (first 8000 chars of specs)
 2. Read the persona template from the reference file
-3. Write `SHAKEOUT-PERSONAS.md` with 5-6 personas (plus one anti-persona) following
-   the template structure. Each persona must be specific to THIS product.
-4. Tell the user the personas were generated
+3. **Research the target audience.** Use web searches to ground personas in real data:
+   - Search for the product's user demographic (e.g., "college student internship
+     search behavior 2025", "first-generation college student career planning challenges")
+   - Search for accessibility and device usage patterns in the target demographic
+     (e.g., "college student mobile vs desktop usage", "screen reader usage among students")
+   - Search for common pain points and goals (e.g., "why students abandon career tools",
+     "what college students want from job search apps")
+   - Use 2-4 targeted searches — enough to inform the personas, not exhaustive research
+4. Write `SHAKEOUT-PERSONAS.md` with 5-6 personas (plus one anti-persona) following
+   the template structure. Incorporate the research findings into quantified pain
+   points and realistic behavior patterns. Each persona must be specific to THIS product.
+5. Tell the user the personas were generated and summarize what research informed them
 
 ## Step 4: Select Persona
 
