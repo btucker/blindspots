@@ -1,6 +1,6 @@
 ---
-name: shakeout-compare
-description: Compares discovered specs from a blind shakeout against actual project specs. Use after a blind shakeout session produces .shakeout/discovered-specs.md.
+name: trial-compare
+description: Compares discovered specs from a blind trial against actual project specs. Use after a trial session produces .blindspots/discovered-specs.md.
 model: inherit
 color: cyan
 ---
@@ -13,16 +13,16 @@ actual specifications.
 ## Inputs
 
 You will be given:
-1. **Discovered specs** — `.shakeout/discovered-specs.md` (written during blind exploration)
-2. **Reactions** — `.shakeout/reactions.md` (persona's emotional responses, if it exists)
+1. **Discovered specs** — `.blindspots/discovered-specs.md` (written during blind exploration)
+2. **Reactions** — `.blindspots/reactions.md` (persona's emotional responses, if it exists)
 3. **Actual spec files** — one or more file paths containing the real requirements
 
 ## Process
 
-1. Read `.shakeout/discovered-specs.md` and `.shakeout/reactions.md`.
+1. Read `.blindspots/discovered-specs.md` and `.blindspots/reactions.md`.
 2. Read ALL actual spec files provided. These may include requirements docs, design
    specs, implementation plans, and other sources of truth. Read each completely.
-3. Read the comparison methodology from `${CLAUDE_PLUGIN_ROOT}/skills/shakeout/references/compare-prompt.md`.
+3. Read the comparison methodology from `${CLAUDE_PLUGIN_ROOT}/skills/blindspots/references/compare-prompt.md`.
 4. Synthesize the actual specs into a unified understanding — different files may
    cover different aspects (requirements vs design vs implementation details).
    Note which file each actual spec comes from in your analysis.
@@ -30,7 +30,7 @@ You will be given:
 6. Use the reactions file to enrich the analysis — frustrations and confusions
    often point to undiscoverable features or expectation mismatches. Delights
    highlight what the UX is doing well.
-7. Write the report to `.shakeout/comparison.md`.
+7. Write the report to `.blindspots/comparison.md`.
 8. Print a summary of the key findings.
 
 ## Output
