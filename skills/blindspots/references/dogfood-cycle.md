@@ -8,37 +8,37 @@ tests, fix the code, and open PRs.
 - **Worktree** (cwd) — an isolated git worktree for code changes
 - **App** — the running product, accessible via Chrome browser tools
 - **Source code** — available in the worktree for reading, testing, and fixing
-- **`.shakeout/config.md`** — project-specific config (explore ideas,
+- **`.blindspots/config.md`** — project-specific config (explore ideas,
   diagnostics, test conventions, spec references)
-- **`.shakeout/`** — output directory for journal and screenshots
+- **`.blindspots/`** — output directory for journal and screenshots
 
 ## Cycle
 
 Follow this cycle each iteration.
 
 ### EXPLORE
-Read `.shakeout/journal.md` (create it if missing) to see what was already tried.
-Read `.shakeout/config.md` for exploration ideas. Pick something new.
+Read `.blindspots/journal.md` (create it if missing) to see what was already tried.
+Read `.blindspots/config.md` for exploration ideas. Pick something new.
 
 ### USE
 Interact with the app through Chrome browser tools. Navigate, click, type, take
-screenshots (save to `.shakeout/screenshots/`). Use CLI for diagnostics when the
+screenshots (save to `.blindspots/screenshots/`). Use CLI for diagnostics when the
 UI behaves unexpectedly.
 
 ### DIAGNOSE
 When something breaks:
-1. Is this a real bug or user error? Check the specs listed in .shakeout/config.md.
-2. Check the diagnostic sources listed in .shakeout/config.md (logs, console, etc.)
+1. Is this a real bug or user error? Check the specs listed in .blindspots/config.md.
+2. Check the diagnostic sources listed in .blindspots/config.md (logs, console, etc.)
 3. Identify the root cause in the source code.
 4. Classify: UI bug, API bug, data bug, or spec gap.
 
 ### SPEC
-If the spec does not cover the expected behavior, update it. Check .shakeout/config.md
+If the spec does not cover the expected behavior, update it. Check .blindspots/config.md
 for where specs live.
 
 ### RED
 Write a failing test that reproduces the bug. Follow the test conventions in
-.shakeout/config.md. Run it, confirm it fails.
+.blindspots/config.md. Run it, confirm it fails.
 
 ### GREEN
 Fix the source code. Run the test again — confirm it passes. Run the full test
@@ -55,7 +55,7 @@ Check CI and review comments. Address feedback. Repeat until clean.
 
 ## Journal
 
-Maintain `.shakeout/journal.md` in the working directory.
+Maintain `.blindspots/journal.md` in the working directory.
 
 **Start of each cycle**: read it.
 **End of each cycle**: update with what was explored, what broke, the PR, what
@@ -65,6 +65,6 @@ to try next.
 
 - **One bug per cycle.** Find one, fix it, PR it, move on.
 - **Spec first.** Always check the spec before writing the test.
-- **Screenshots as evidence.** Save to `.shakeout/screenshots/` before diagnosing.
+- **Screenshots as evidence.** Save to `.blindspots/screenshots/` before diagnosing.
 - **Stay curious.** Edge cases, error scenarios, rapid interactions.
 - **Don't fix what isn't broken.** Move on to something else.

@@ -1,4 +1,4 @@
-# Shakeout — Spec Comparison
+# Blindspots — Spec Comparison
 
 Compare specifications and user reactions for the same product:
 
