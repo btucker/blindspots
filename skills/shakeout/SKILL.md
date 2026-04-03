@@ -48,6 +48,7 @@ instructions are in the references directory:
 | `SHAKEOUT-PERSONAS.md` | Pool of user personas for testing |
 | `shakeout-journal.md` | Session log (what was tried, what broke, PRs opened) |
 | `shakeout-discovered-specs.md` | Blind mode output — discovered specifications |
+| `shakeout-reactions.md` | Blind mode output — persona's emotional reactions (surprises, frustrations, delights) |
 | `shakeout-comparison.md` | Blind mode output — discovered vs actual spec analysis |
 
 ## Comparison Agent

@@ -1,10 +1,12 @@
 # Shakeout — Spec Comparison
 
-Compare two sets of specifications for the same product:
+Compare specifications and user reactions for the same product:
 
 1. **Discovered specs** — written by someone who explored the product blind, with
    no documentation, purely from observation.
 2. **Actual specs** — the real requirements the product was built against.
+3. **Reactions** (optional) — the persona's emotional responses during exploration
+   (surprises, delights, frustrations, confusions, anxieties).
 
 ## Report Structure
 
@@ -34,8 +36,19 @@ Cases where both documents cover the same feature but describe different behavio
 The explorer expected X, the spec says Y. These reveal where the UX does not
 communicate intent clearly.
 
-### 5. Summary
+### 5. UX Highlights
+If reactions were provided, summarize:
+- **Top delights** — what made the persona's experience positive
+- **Top frustrations** — where the UX created friction or confusion
+- **Anxiety moments** — where the persona felt uncertain about data safety or correctness
+
+Cross-reference with spec sections. A frustration linked to a spec'd feature means
+the implementation isn't communicating its intent. A delight on an unspec'd behavior
+means the product is doing something right that should be documented.
+
+### 6. Summary
 - Total discovered vs total actual
 - Match rate (what percentage of actual specs were discovered)
 - Top 3 discoverability issues
 - Top 3 spec gaps worth addressing
+- Persona sentiment: would this user come back?

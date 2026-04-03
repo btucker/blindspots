@@ -111,8 +111,9 @@ Pointers to specs, design docs, and other sources of truth.
 - PRs with failing tests + fixes
 
 ### Blind mode
-- `shakeout-journal.md` — exploration log
+- `shakeout-journal.md` — exploration log with persona check-ins
 - `shakeout-discovered-specs.md` — specs written from observation
+- `shakeout-reactions.md` — persona's emotional reactions (surprises, delights, frustrations, confusions)
 - `shakeout-comparison.md` — discovered vs actual spec analysis
 - PRs for any clear bugs found during exploration
 
