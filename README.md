@@ -7,6 +7,15 @@ and opening PRs.
 ## Install
 
 ```bash
+# Add the marketplace (once)
+claude plugin marketplace add ~/projects/shakeout
+
+# Install the plugin
+claude plugin install shakeout@shakeout
+```
+
+For development/testing without installing:
+```bash
 claude --plugin-dir ~/projects/shakeout
 ```
 

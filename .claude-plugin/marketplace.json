@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "shakeout",
+  "description": "Automated exploratory testing — use the product as a real user to find bugs, write tests, and open PRs",
+  "owner": {
+    "name": "Ben Tucker"
+  },
+  "plugins": [
+    {
+      "name": "shakeout",
+      "description": "Automated exploratory testing — use the product as a real user to find bugs, write tests, and open PRs",
+      "source": "./",
+      "category": "testing"
+    }
+  ]
+}
