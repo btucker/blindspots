@@ -7,7 +7,7 @@ color: cyan
 
 # Spec Comparison Agent
 
-Compare discovered specifications from a blind shakeout against the project's
+Compare discovered specifications from a blind trial against the project's
 actual specifications.
 
 ## Inputs

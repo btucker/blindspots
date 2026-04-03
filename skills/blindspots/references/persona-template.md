@@ -1,11 +1,11 @@
-# Persona Template for Shakeout
+# Persona Template for Blindspots
 
 Generate personas using this structure. Each persona must be specific to the
 product being tested — not generic user archetypes.
 
 ## Format
 
-The file starts with `# Shakeout Personas` and has one `## Name — Tagline`
+The file starts with `# Blindspots Personas` and has one `## Name — Tagline`
 section per persona. Write in second person ("You are...").
 
 ### Required Elements

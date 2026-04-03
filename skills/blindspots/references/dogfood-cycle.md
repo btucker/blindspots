@@ -1,4 +1,4 @@
-# Guided Shakeout — Testing Cycle
+# Dogfood — Testing Cycle
 
 Test a product as a new user. Exercise the product, find bugs, write failing
 tests, fix the code, and open PRs.
