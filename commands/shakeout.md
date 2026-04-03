@@ -21,7 +21,7 @@ Test). Save the contents for later use.
 Parse the arguments provided after `/shakeout`:
 - `--blind` — blind discovery mode (no specs, no docs)
 - `--persona <name>` — select a named persona (substring match, case-insensitive)
-- `--fresh` — delete `shakeout-journal.md` to start a fresh session
+- `--fresh` — delete `.shakeout/journal.md` to start a fresh session
 
 If no arguments are provided, run in guided mode with a random persona.
 
@@ -53,9 +53,15 @@ Read `SHAKEOUT-PERSONAS.md` and select a persona:
   the substring (case-insensitive). If not found, list available personas and stop.
 - Otherwise, pick one at random.
 
-Print the selected persona name.
+Print the selected persona name and their quote.
 
 ## Step 5: Setup
+
+Create the `.shakeout/` output directory if it doesn't exist:
+
+```bash
+mkdir -p .shakeout/screenshots
+```
 
 Check if the project's dev server needs to be started by running the command in
 the `## Setup` section of `SHAKEOUT.md` (the fenced code block under that heading).
@@ -71,13 +77,14 @@ BRANCH="shakeout/$(date +%Y%m%d-%H%M%S)"
 BASE=$(git rev-parse --verify origin/main 2>/dev/null || git rev-parse --verify main 2>/dev/null || git rev-parse HEAD)
 git worktree add ".worktrees/$BRANCH" -b "$BRANCH" "$BASE"
 cd ".worktrees/$BRANCH"
+mkdir -p .shakeout/screenshots
 ```
 
-## Step 7: Start the Loop
+## Step 7: Launch
 
-Read the appropriate cycle prompt from the plugin's references directory:
-- **Guided mode**: Read `${CLAUDE_PLUGIN_ROOT}/skills/shakeout/references/guided-cycle.md`
-- **Blind mode**: Read `${CLAUDE_PLUGIN_ROOT}/skills/shakeout/references/blind-cycle.md`
+### Guided Mode
+
+Read the cycle prompt from `${CLAUDE_PLUGIN_ROOT}/skills/shakeout/references/guided-cycle.md`.
 
 Construct the full loop prompt by prepending the persona:
 
@@ -94,19 +101,26 @@ what you notice, and what frustrates you.
 <cycle prompt content>
 ```
 
-For **blind mode**, also prepend:
-
-```
-IMPORTANT: Do NOT read any spec files, design docs, requirements, READMEs, or
-AGENTS.md in this project. Discover behavior only through the UI.
-```
-
 Then invoke: `/loop 10m <full prompt>`
 
-## Step 8: After Blind Mode (if applicable)
+### Blind Mode
 
-When a blind shakeout ends and `shakeout-discovered-specs.md` exists in the
-working directory, launch the `shakeout-compare` agent to compare discovered
-specs against the actual specs. Pass it:
-- The path to `shakeout-discovered-specs.md`
+Launch the `shakeout-blind` agent. Pass it:
+- The persona name and full description
+- The app URL (from `## URL` in SHAKEOUT.md)
+- Instructions to run `/loop 10m` with its cycle once it has context
+
+The blind agent has **no Read, Grep, or Glob tools** — it can only interact
+through the browser and write output to `.shakeout/`. This enforces true
+isolation from specs and source code.
+
+## Step 8: After Blind Mode
+
+When a blind shakeout ends and `.shakeout/discovered-specs.md` exists, launch
+the `shakeout-compare` agent to compare discovered specs against the actual specs.
+Pass it:
+- The path to `.shakeout/discovered-specs.md`
+- The path to `.shakeout/reactions.md`
 - The path to the specs file (from `## Specs` in SHAKEOUT.md)
+
+The comparison report will be written to `.shakeout/comparison.md`.

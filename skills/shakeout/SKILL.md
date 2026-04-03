@@ -1,6 +1,6 @@
 ---
 name: shakeout
-description: This skill should be used when the user is running an exploratory testing session, when "shakeout-journal.md" or "SHAKEOUT.md" exists in the project, when the user mentions "shakeout", "exploratory testing", or when working in a git branch starting with "shakeout/".
+description: This skill should be used when the user is running an exploratory testing session, when ".shakeout/" directory or "SHAKEOUT.md" exists in the project, when the user mentions "shakeout", "exploratory testing", or when working in a git branch starting with "shakeout/".
 ---
 
 # Shakeout — Exploratory Testing Skill
@@ -21,47 +21,54 @@ Test the product against known specs and requirements. The project's `SHAKEOUT.m
 defines what to explore, how to diagnose, and where specs live.
 
 ### Blind Mode
-Explore with NO access to specs or documentation. Discover what the product does
-and write specifications from observation. Produce `shakeout-discovered-specs.md`.
+A **separate agent** (`shakeout-blind`) explores with NO access to source code,
+specs, or documentation. The agent's tools are restricted to browser interaction
+and writing output files — it literally cannot read project files. This enforces
+true isolation, not just an honor system.
+
+## Output Directory
+
+All shakeout output lives in `.shakeout/`:
+
+| File | Mode | Purpose |
+|------|------|---------|
+| `.shakeout/journal.md` | Both | Session log (explored, found, PRs, next steps) |
+| `.shakeout/discovered-specs.md` | Blind | Specifications discovered from observation |
+| `.shakeout/reactions.md` | Blind | Persona's emotional reactions |
+| `.shakeout/comparison.md` | Blind | Discovered vs actual spec analysis |
+| `.shakeout/screenshots/` | Both | Evidence captured during exploration |
+
+## Project Config Files
+
+| File | Purpose |
+|------|---------|
+| `SHAKEOUT.md` | Project-specific testing config (explore, diagnose, test) |
+| `SHAKEOUT-PERSONAS.md` | Pool of user personas for testing |
 
 ## Core Cycle
 
-Each loop iteration follows one of two cycles depending on mode. Detailed cycle
-instructions are in the references directory:
+Detailed cycle instructions are in the references directory:
 
 - **Guided**: `references/guided-cycle.md` — EXPLORE, USE, DIAGNOSE, SPEC, RED, GREEN, PR
-- **Blind**: `references/blind-cycle.md` — EXPLORE, USE, OBSERVE, DOCUMENT, BUG
+- **Blind**: embedded in the `shakeout-blind` agent — EXPLORE, USE, OBSERVE, REACT, DOCUMENT
 
 ## Key Principles
 
 - **One bug per cycle.** Find it, test it, fix it, PR it, move on.
-- **Journal everything.** Read `shakeout-journal.md` at cycle start, update at end.
-- **Screenshots as evidence.** Capture before diagnosing.
-- **Spec first.** In guided mode, always check the spec before writing a test.
+- **Journal everything.** Read `.shakeout/journal.md` at start, update at end.
+- **Screenshots as evidence.** Save to `.shakeout/screenshots/`.
+- **Spec first.** In guided mode, check the spec before writing a test.
 - **Stay in character.** The persona shapes exploration behavior.
 
-## Project Files
+## Agents
 
-| File | Purpose |
-|------|---------|
-| `SHAKEOUT.md` | Project-specific testing config (explore, diagnose, test sections) |
-| `SHAKEOUT-PERSONAS.md` | Pool of user personas for testing |
-| `shakeout-journal.md` | Session log (what was tried, what broke, PRs opened) |
-| `shakeout-discovered-specs.md` | Blind mode output — discovered specifications |
-| `shakeout-reactions.md` | Blind mode output — persona's emotional reactions (surprises, frustrations, delights) |
-| `shakeout-comparison.md` | Blind mode output — discovered vs actual spec analysis |
-
-## Comparison Agent
-
-After a blind session, launch the `shakeout-compare` agent with the discovered
-specs and actual specs paths. See `references/compare-prompt.md` for the
-comparison methodology.
+- **`shakeout-blind`** — Browser-only agent for blind discovery. No Read/Grep/Glob.
+- **`shakeout-compare`** — Analyzes discovered specs vs actual specs after blind mode.
 
 ## Additional Resources
 
 ### Reference Files
 
 - **`references/guided-cycle.md`** — Full guided cycle instructions
-- **`references/blind-cycle.md`** — Full blind discovery cycle instructions
 - **`references/compare-prompt.md`** — Spec comparison methodology
 - **`references/persona-template.md`** — Template for generating SHAKEOUT-PERSONAS.md

@@ -1,6 +1,6 @@
 ---
 name: shakeout-compare
-description: Compares discovered specs from a blind shakeout against actual project specs. Use after a blind shakeout session produces shakeout-discovered-specs.md.
+description: Compares discovered specs from a blind shakeout against actual project specs. Use after a blind shakeout session produces .shakeout/discovered-specs.md.
 model: inherit
 color: cyan
 ---
@@ -12,10 +12,10 @@ actual specifications.
 
 ## Inputs
 
-Three files will be provided:
-1. **Discovered specs** — `shakeout-discovered-specs.md` (written during blind exploration)
+Three file paths will be provided:
+1. **Discovered specs** — `.shakeout/discovered-specs.md` (written during blind exploration)
 2. **Actual specs** — the project's real specs file (path from SHAKEOUT.md `## Specs`)
-3. **Reactions** — `shakeout-reactions.md` (persona's emotional responses, if it exists)
+3. **Reactions** — `.shakeout/reactions.md` (persona's emotional responses, if it exists)
 
 ## Process
 
@@ -25,7 +25,7 @@ Three files will be provided:
 4. Use the reactions file to enrich the analysis — frustrations and confusions
    often point to undiscoverable features or expectation mismatches. Delights
    highlight what the UX is doing well.
-5. Write the report to `shakeout-comparison.md` in the working directory.
+5. Write the report to `.shakeout/comparison.md` in the working directory.
 6. Print a summary of the key findings.
 
 ## Output

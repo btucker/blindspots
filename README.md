@@ -35,8 +35,10 @@ tests the product against known requirements.
 
 ### Blind
 
-Claude gets no specs, no docs, no requirements. It explores the product as a
-completely naive first-time user and writes specifications from observation.
+A separate **`shakeout-blind` agent** explores the product with tool-level
+isolation — it has browser access and Write only. No Read, no Grep, no Glob. It
+literally cannot open source code, specs, or documentation. This is enforced by
+the agent's tool restrictions, not just instructions.
 
 When the blind session ends, a comparison agent analyzes discovered specs against
 the real ones, producing a report with:
@@ -106,28 +108,33 @@ Pointers to specs, design docs, and other sources of truth.
 
 ## Output
 
+All output lives in `.shakeout/` (add to `.gitignore` if desired):
+
 ### Guided mode
-- `shakeout-journal.md` — log of what was explored and found
-- PRs with failing tests + fixes
+- `.shakeout/journal.md` — log of what was explored and found
+- `.shakeout/screenshots/` — evidence captured during testing
+- PRs with failing tests + fixes (in the worktree itself)
 
 ### Blind mode
-- `shakeout-journal.md` — exploration log with persona check-ins
-- `shakeout-discovered-specs.md` — specs written from observation
-- `shakeout-reactions.md` — persona's emotional reactions (surprises, delights, frustrations, confusions)
-- `shakeout-comparison.md` — discovered vs actual spec analysis
-- PRs for any clear bugs found during exploration
+- `.shakeout/journal.md` — exploration log with persona check-ins
+- `.shakeout/discovered-specs.md` — specs written from observation
+- `.shakeout/reactions.md` — persona's emotional reactions
+- `.shakeout/comparison.md` — discovered vs actual spec analysis
+- `.shakeout/screenshots/` — evidence captured during exploration
 
 ## Plugin Structure
 
 ```
 shakeout/
-├── .claude-plugin/plugin.json   # Plugin manifest
-├── commands/shakeout.md         # /shakeout command
-├── agents/shakeout-compare.md   # Spec comparison agent
+├── .claude-plugin/plugin.json       # Plugin manifest
+├── commands/shakeout.md             # /shakeout command
+├── agents/
+│   ├── shakeout-blind.md            # Blind agent (browser-only, no Read/Grep/Glob)
+│   └── shakeout-compare.md          # Spec comparison agent
 └── skills/shakeout/
-    ├── SKILL.md                 # Auto-activates during sessions
+    ├── SKILL.md                     # Auto-activates during sessions
     └── references/
-        ├── guided-cycle.md      # Guided testing cycle
-        ├── blind-cycle.md       # Blind discovery cycle
-        └── compare-prompt.md    # Comparison methodology
+        ├── guided-cycle.md          # Guided testing cycle
+        ├── compare-prompt.md        # Comparison methodology
+        └── persona-template.md      # Persona generation template
 ```

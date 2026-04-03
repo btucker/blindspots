@@ -10,18 +10,20 @@ tests, fix the code, and open PRs.
 - **Source code** — available in the worktree for reading, testing, and fixing
 - **SHAKEOUT.md** — project-specific config in the project root (explore ideas,
   diagnostics, test conventions, spec references)
+- **`.shakeout/`** — output directory for journal and screenshots
 
 ## Cycle
 
 Follow this cycle each iteration.
 
 ### EXPLORE
-Read `shakeout-journal.md` (create it if missing) to see what was already tried.
+Read `.shakeout/journal.md` (create it if missing) to see what was already tried.
 Read `SHAKEOUT.md` for exploration ideas. Pick something new.
 
 ### USE
 Interact with the app through Chrome browser tools. Navigate, click, type, take
-screenshots. Use CLI for diagnostics when the UI behaves unexpectedly.
+screenshots (save to `.shakeout/screenshots/`). Use CLI for diagnostics when the
+UI behaves unexpectedly.
 
 ### DIAGNOSE
 When something breaks:
@@ -53,7 +55,7 @@ Check CI and review comments. Address feedback. Repeat until clean.
 
 ## Journal
 
-Maintain `shakeout-journal.md` in the working directory.
+Maintain `.shakeout/journal.md` in the working directory.
 
 **Start of each cycle**: read it.
 **End of each cycle**: update with what was explored, what broke, the PR, what
@@ -63,6 +65,6 @@ to try next.
 
 - **One bug per cycle.** Find one, fix it, PR it, move on.
 - **Spec first.** Always check the spec before writing the test.
-- **Screenshots as evidence.** Capture before diagnosing.
+- **Screenshots as evidence.** Save to `.shakeout/screenshots/` before diagnosing.
 - **Stay curious.** Edge cases, error scenarios, rapid interactions.
 - **Don't fix what isn't broken.** Move on to something else.
