@@ -15,22 +15,23 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # Parse args
 PROJECT_DIR=""
 ACTION="run"
-for arg in "$@"; do
-    case "$arg" in
-        --project)  shift; PROJECT_DIR="$1"; shift ;;
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --project)  shift; PROJECT_DIR="$1" ;;
         --fresh)    ACTION="fresh" ;;
         --setup)    ACTION="setup" ;;
         --teardown) ACTION="teardown" ;;
-        run|"")     ACTION="run" ;;
+        run)        ACTION="run" ;;
         *)
-            if [ -z "$PROJECT_DIR" ] && [ -d "$arg" ]; then
-                PROJECT_DIR="$arg"
+            if [ -z "$PROJECT_DIR" ] && [ -d "$1" ]; then
+                PROJECT_DIR="$1"
             else
                 echo "Usage: $0 [--project <path>] [--fresh|--setup|--teardown]"
                 exit 1
             fi
             ;;
     esac
+    shift
 done
 
 # Default to current directory
@@ -91,7 +92,7 @@ if [ ! -f "$ENVFILE" ]; then
 
     # Extract setup command from SHAKEOUT.md
     # Looks for a fenced code block after "## Setup"
-    SETUP_CMD=$(sed -n '/^## Setup/,/^## /{/```/,/```/{ /```/d; p; }}' "$PROJECT_DIR/SHAKEOUT.md" | head -20)
+    SETUP_CMD=$(awk '/^## Setup/{found=1;next} found&&/^## /{exit} found&&/^```/{fence=!fence;next} found&&fence{print}' "$PROJECT_DIR/SHAKEOUT.md" | head -20)
 
     if [ -n "$SETUP_CMD" ]; then
         echo "Running setup from SHAKEOUT.md..."

@@ -11,9 +11,8 @@ find bugs, write failing tests, fix the code, and open PRs.
 
 ## Project Context
 
-The file `SHAKEOUT.md` in the project root contains everything specific to this
-project: your persona, what to explore, how to test, where to find specs. Read it
-now before doing anything else.
+Your persona and the project's SHAKEOUT.md have been loaded into your system prompt.
+They define who you are, what to explore, how to test, and where to find specs.
 
 ## Your Cycle
 
