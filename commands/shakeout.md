@@ -28,17 +28,14 @@ If no arguments are provided, run in guided mode with a random persona.
 ## Step 3: Generate Personas
 
 Check if `SHAKEOUT-PERSONAS.md` exists in the project root. If it does NOT exist,
-generate it:
+generate it using the template in `${CLAUDE_PLUGIN_ROOT}/skills/shakeout/references/persona-template.md`.
 
 1. Read the project's `README.md`, `SHAKEOUT.md`, and any file referenced in the
    `## Specs` section of `SHAKEOUT.md` (first 8000 chars of specs)
-2. Write `SHAKEOUT-PERSONAS.md` with 5-6 diverse personas specific to this product:
-   - Each persona has a `## Name` heading and a 3-5 sentence description
-   - Written in second person ("You are...")
-   - Include personality traits that affect usage patterns
-   - Cover diverse angles: patient/rushed, technical/non-technical, mobile/desktop,
-     accessibility needs, different goals
-3. Tell the user the personas were generated
+2. Read the persona template from the reference file
+3. Write `SHAKEOUT-PERSONAS.md` with 5-6 personas (plus one anti-persona) following
+   the template structure. Each persona must be specific to THIS product.
+4. Tell the user the personas were generated
 
 ## Step 4: Select Persona
 

@@ -64,3 +64,4 @@ comparison methodology.
 - **`references/guided-cycle.md`** — Full guided cycle instructions
 - **`references/blind-cycle.md`** — Full blind discovery cycle instructions
 - **`references/compare-prompt.md`** — Spec comparison methodology
+- **`references/persona-template.md`** — Template for generating SHAKEOUT-PERSONAS.md
