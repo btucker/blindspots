@@ -8,15 +8,10 @@ user interviews.
 
 ```bash
 # Add the marketplace (once)
-claude plugin marketplace add ~/projects/blindspots
+claude plugin marketplace add btucker/blindspots
 
 # Install
 claude plugin install blindspots@blindspots
-```
-
-For development:
-```bash
-claude --plugin-dir ~/projects/blindspots
 ```
 
 ## Commands
