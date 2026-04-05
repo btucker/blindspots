@@ -17,10 +17,8 @@ specifications from observation.
 Check `BLINDSPOTS_DEPTH` environment variable. If >= 1, skip agent launching —
 inform the user that nested blindspots sessions are not supported and stop.
 
-Read `.blindspots/config.md`. If `.blindspots/config.md` does not exist, run
-the `/setup` flow inline (invoke the `setup` command) before continuing.
-
-Only needed for Setup, Start (or URL for backward compatibility), and Specs sections.
+Read `.blindspots/config.md`. If it does not exist, run the setup command
+(`blindspots:setup`) before continuing.
 
 ## Step 2: Parse Arguments
 
