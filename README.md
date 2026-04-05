@@ -5,11 +5,11 @@ use it like real people would — and find things you might not otherwise notice
 
 ## How it works
 
-You install the plugin, point it at your running app, and type `/dogfood`.
+You install the plugin and type `/dogfood`. First run walks you through setup —
+asks about your product, generates config, creates personas. Then it picks a
+persona and starts using your product in character.
 
-Blindspots reads your project — README, specs, config — and generates a cast of
-synthetic personas based on your actual target audience. It picks one, opens a
-browser, and starts using your product in character.
+Blindspots works with webapps, CLI tools, plugins — anything you can run locally.
 
 From there, four modes let you ask different questions about your product:
 
@@ -47,21 +47,25 @@ claude plugin install blindspots from btucker/blindspots
 
 ## Setup
 
-Create `.blindspots/config.md` in your project:
+Running any command for the first time triggers interactive setup. It reads your
+project, asks a few questions, and generates `.blindspots/config.md` and
+`.blindspots/personas.md`. You can also run `/setup` directly to regenerate.
+
+A generated config looks something like:
 
 ```markdown
 ## Setup
 npm run dev &
 
-## URL
+## Start
 http://localhost:3000
 
 ## Specs
 - SPECS.md
 ```
 
-That's the minimum. Tell it how to start your app, where it's running, and where
-your specs live. Then run `/dogfood`.
+`## Start` tells the persona how to begin — a URL for webapps, a command for
+CLI tools, whatever makes sense for your product.
 
 ### Optional config sections
 

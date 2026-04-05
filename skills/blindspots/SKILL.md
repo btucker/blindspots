@@ -11,6 +11,7 @@ This skill provides context and guidance during an active blindspots session.
 
 | Command | Purpose | Has Specs? | Fixes Bugs? |
 |---------|---------|------------|-------------|
+| `blindspots:setup` | Interactive config and persona generation | N/A | No |
 | `blindspots:dogfood` | Test against specs, find regressions | Yes | Yes |
 | `blindspots:user-trial` | Persona discovers the product with no insider knowledge | No | No |
 | `blindspots:experiment` | A/B compare two variants with user trial personas | No | No |
@@ -41,21 +42,23 @@ Config is checked in; session output is gitignored.
 
 ## Agents
 
-- **`user-trial-explorer`** — Browser-only agent for user trial discovery. No Read/Grep/Glob.
+- **`user-trial-explorer-browser`** — Browser-based user trial explorer. No Read/Grep/Glob.
+- **`user-trial-explorer-terminal`** — Terminal-based user trial explorer. Bash + Read (restricted) + Write.
 - **`user-trial-compare`** — Analyzes discovered specs vs actual specs.
 - **`experiment-verdict`** — Synthesizes A/B test results into ship/no-ship verdict.
 - **`interviewer`** — Conducts persona Q&A sessions.
 
 ## Shared Steps
 
-Several commands share common setup steps. These are documented in the commands
-themselves but follow a consistent pattern:
+All commands auto-run `/setup` if `.blindspots/config.md` is missing. The shared
+startup pattern:
 
-1. Read `.blindspots/config.md`
-2. Generate `.blindspots/personas.md` if missing (using `references/persona-template.md`)
+1. Check for `.blindspots/config.md` — run `blindspots:setup` if missing
+2. Check for `.blindspots/personas.md` — run `blindspots:setup` if missing
 3. Select persona (random or `--persona <name>`)
 4. Run setup commands from config
-5. Mode-specific launch
+5. Infer interface mode from `## Start` (browser or terminal)
+6. Mode-specific launch with `BLINDSPOTS_DEPTH=1`
 
 ## Reference Files
 

@@ -10,6 +10,11 @@ arguments:
 
 A/B test two product variants with synthetic personas.
 
+## Step 0: Depth Check
+
+Check `BLINDSPOTS_DEPTH` environment variable. If >= 1, skip — inform the user
+that nested experiment sessions are not supported.
+
 ## Step 1: Parse Arguments
 
 ```
@@ -31,12 +36,26 @@ or find free ports).
 
 ## Step 2: Personas
 
-Generate `.blindspots/personas.md` if missing (same as other commands).
+Read `.blindspots/config.md`. If it does not exist, run the setup command (`blindspots:setup`) before continuing.
+
+Read `.blindspots/personas.md`. If it does not exist, run the setup command (`blindspots:setup`) before continuing.
 
 Select N personas (exclude anti-persona):
 - If `--persona` given, use only that persona
 - Otherwise pick N random (capped at persona count)
 - Same personas run both variants (paired comparison)
+
+## Step 2b: Infer Interface Mode
+
+Determine which explorer agent to use:
+
+1. **Check variant sources first**: if any variant source is a URL (starts with
+   `http`), use **browser mode** — URL-based variants always need a browser.
+2. **Check config override**: read `## Tools` from `.blindspots/config.md`. If it
+   says `browser` or `terminal`, use that mode.
+3. **Infer from start instructions**: read `## Start` from `.blindspots/config.md`
+   (fall back to `## URL` for backward compat). If it contains a URL (starts with
+   `http` or `localhost`), use **browser mode**. Otherwise use **terminal mode**.
 
 ## Step 3: Setup Variants
 
@@ -80,7 +99,17 @@ Write `.blindspots/experiments/<test-name>/manifest.md`:
 
 ## Step 6: Launch All Agents in Parallel
 
-Launch 2N `user-trial-explorer` agents in parallel. Each receives:
+Set depth before launching:
+
+```bash
+export BLINDSPOTS_DEPTH=1
+```
+
+Launch 2N explorer agents in parallel, using the agent matching the inferred mode:
+- **Browser mode** → `user-trial-explorer-browser`
+- **Terminal mode** → `user-trial-explorer-terminal`
+
+For **browser mode**, each agent receives:
 
 ```
 The app is running at <variant-url>.
@@ -91,6 +120,19 @@ Your persona:
 <full persona description>
 
 Navigate to the app URL and start exploring.
+```
+
+For **terminal mode**, each agent receives:
+
+```
+Write all output to .blindspots/experiments/<test-name>/<label>/<persona-run>/.
+
+Your persona:
+## <persona name>
+<full persona description>
+
+Start instructions:
+<content from ## Start in .blindspots/config.md>
 ```
 
 Wait for all agents to complete. Update manifest status to `complete`.

@@ -1,6 +1,6 @@
 ---
 name: user-trial
-description: Run a user trial. A tool-restricted persona explores the product with no specs, no docs, no source code — only the browser. Discovers what the product does and documents it.
+description: Run a user trial. A tool-restricted persona explores the product with no specs, no docs, no source code — only the browser or terminal. Discovers what the product does and documents it.
 arguments:
   - name: options
     description: "--persona <name> for a specific persona, --fresh to start over"
@@ -14,7 +14,13 @@ specifications from observation.
 
 ## Step 1: Validate
 
-Read `.blindspots/config.md`. Only needed for Setup, URL, and Specs sections.
+Check `BLINDSPOTS_DEPTH` environment variable. If >= 1, skip agent launching —
+inform the user that nested blindspots sessions are not supported and stop.
+
+Read `.blindspots/config.md`. If `.blindspots/config.md` does not exist, run
+the `/setup` flow inline (invoke the `setup` command) before continuing.
+
+Only needed for Setup, Start (or URL for backward compatibility), and Specs sections.
 
 ## Step 2: Parse Arguments
 
@@ -23,12 +29,7 @@ Read `.blindspots/config.md`. Only needed for Setup, URL, and Specs sections.
 
 ## Step 3: Personas
 
-Same as dogfood — generate `.blindspots/personas.md` if missing.
-
-1. Read `README.md`, `.blindspots/config.md`, and resolved spec files (~2000 chars each)
-2. Read persona template from `${CLAUDE_PLUGIN_ROOT}/skills/blindspots/references/persona-template.md`
-3. Run 2-4 web searches about the target audience
-4. Write `.blindspots/personas.md` with 5-6 personas + one anti-persona
+Read `.blindspots/personas.md`. If it does not exist, run the setup command (`blindspots:setup`) before continuing.
 
 ## Step 4: Select Persona
 
@@ -41,14 +42,37 @@ Print selected persona name and quote.
 mkdir -p .blindspots/screenshots
 ```
 
-Run setup commands from `## Setup` in `.blindspots/config.md`. Extract URL.
+Run setup commands from `## Setup` in `.blindspots/config.md`.
+Read `## Start` from config (or `## URL` for backward compatibility).
+
+## Step 5.5: Mode Inference
+
+Determine the interface mode from the config:
+
+1. Read `## Start` from `.blindspots/config.md` (falling back to `## URL` for
+   backward compatibility).
+2. Check for an explicit override: if config contains `## Tools: browser` or
+   `## Tools: terminal`, use that mode directly.
+3. Otherwise, infer from the `## Start` content:
+   - If it starts with `http` or `localhost` → **browser mode**
+   - Otherwise → **terminal mode**
 
 ## Step 6: Launch
 
-Launch the `user-trial-explorer` agent with ONLY:
+Set the depth guard before launching:
+
+```bash
+export BLINDSPOTS_DEPTH=1
+```
+
+Launch the explorer agent matching the inferred mode:
+
+### Browser mode
+
+Launch the `user-trial-explorer-browser` agent with ONLY:
 
 ```
-The app is running at <URL>.
+The app is running at <Start URL>.
 
 Your persona:
 ## <persona name>
@@ -57,8 +81,23 @@ Your persona:
 Navigate to the app URL and start exploring. Write all output to .blindspots/.
 ```
 
+### Terminal mode
+
+Launch the `user-trial-explorer-terminal` agent with ONLY:
+
+```
+Start instructions:
+<full text from ## Start>
+
+Your persona:
+## <persona name>
+<full persona description>
+
+Follow the start instructions and begin exploring. Write all output to .blindspots/.
+```
+
 Do NOT include content from config.md (explore ideas, diagnostics, specs).
-The agent has no Read, Grep, or Glob tools — true isolation.
+The agents have restricted tools — true isolation.
 
 ## Step 7: Compare
 

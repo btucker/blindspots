@@ -12,8 +12,9 @@ Test your product against its own specifications. Find bugs, write tests, fix co
 
 ## Step 1: Validate
 
-Read `.blindspots/config.md`. If missing, tell the user to create one with
-sections: Setup, URL, Explore, Diagnose, Test, Specs.
+Read `.blindspots/config.md`. If it does not exist, run the setup command (`blindspots:setup`) before continuing.
+
+Check `BLINDSPOTS_DEPTH` environment variable. If >= 1, run the dogfood cycle directly without launching subagents or worktrees — just do the testing work in the current session.
 
 ## Step 2: Parse Arguments
 
@@ -22,12 +23,7 @@ sections: Setup, URL, Explore, Diagnose, Test, Specs.
 
 ## Step 3: Personas
 
-If `.blindspots/personas.md` does not exist, generate it:
-
-1. Read `README.md`, `.blindspots/config.md`, and resolved spec files (~2000 chars each)
-2. Read persona template from `${CLAUDE_PLUGIN_ROOT}/skills/blindspots/references/persona-template.md`
-3. Run 2-4 web searches about the target audience demographics and pain points
-4. Write `.blindspots/personas.md` with 5-6 personas + one anti-persona
+Read `.blindspots/personas.md`. If it does not exist, run the setup command (`blindspots:setup`) before continuing.
 
 ## Step 4: Select Persona
 
@@ -41,7 +37,7 @@ mkdir -p .blindspots/screenshots
 ```
 
 Run setup commands from `## Setup` in `.blindspots/config.md`.
-Extract URL from `## URL` (default `http://localhost:3000`).
+Extract the start point from `## Start` in `.blindspots/config.md` (fall back to `## URL` for backward compatibility; default `http://localhost:3000`).
 
 ## Step 6: Worktree
 
@@ -57,6 +53,8 @@ mkdir -p .blindspots/screenshots
 ## Step 7: Launch
 
 Read cycle prompt from `${CLAUDE_PLUGIN_ROOT}/skills/blindspots/references/dogfood-cycle.md`.
+
+Set `export BLINDSPOTS_DEPTH=1` before invoking the loop.
 
 Prepend persona:
 
