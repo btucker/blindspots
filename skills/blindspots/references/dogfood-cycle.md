@@ -1,7 +1,7 @@
 # Dogfood — Testing Cycle
 
-Test a product as a new user. Exercise the product, find bugs, write failing
-tests, fix the code, and open PRs.
+Test a product as a new user. Exercise the product, find bugs, fix the code,
+and commit fixes.
 
 ## Environment
 
@@ -37,13 +37,9 @@ When something breaks:
 If the spec does not cover the expected behavior, update it. Check .blindspots/config.md
 for where specs live.
 
-### RED
-Write a failing test that reproduces the bug. Follow the test conventions in
-.blindspots/config.md. Run it, confirm it fails.
-
-### GREEN
-Fix the source code. Run the test again — confirm it passes. Run the full test
-suite to check for regressions.
+### FIX
+Fix the source code. If the project has a test framework (check .blindspots/config.md),
+write a test and confirm it passes. Otherwise, verify the fix manually.
 
 ### COMMIT
 Commit the fix to the worktree branch with a descriptive message.
@@ -54,13 +50,13 @@ Do NOT push or open a PR — just commit locally.
 Maintain your persona's dogfood journal at `.blindspots/dogfood-journals/<persona-slug>.md`.
 
 **Start of each cycle**: read it.
-**End of each cycle**: update with what was explored, what broke, the PR, what
-to try next.
+**End of each cycle**: update with what was explored, what broke, what was
+fixed, what to try next.
 
 ## Rules
 
 - **One bug per cycle.** Find one, fix it, commit it, move on.
-- **Spec first.** Always check the spec before writing the test.
+- **Spec first.** Always check the spec before fixing.
 - **Screenshots as evidence.** Save to `.blindspots/screenshots/` when useful.
 - **Stay curious.** Edge cases, error scenarios, rapid interactions.
 - **Don't fix what isn't broken.** Move on to something else.
