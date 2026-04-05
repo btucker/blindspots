@@ -32,8 +32,9 @@ that don't load within 2 seconds."
 tech comfort, device, attention span, click patterns, what they read vs skip,
 how they react to errors.
 
-**Tech Profile** — Device, browser, connection quality, accessibility needs,
-how many tabs/apps they juggle.
+**Tech Profile** — Device, browser, connection quality, accessibility context
+(permanent, temporary, or situational — everyone has one), how many tabs/apps
+they juggle.
 
 ## Example
 
@@ -66,7 +67,7 @@ a campus career services email you almost deleted.
 
 **Tech Profile**
 - iPhone 13, campus Wi-Fi (inconsistent), Safari
-- Zero accessibility needs but low patience threshold
+- Situational: thumb-only input, glare on screen between classes, distracted attention
 - 3 browser tabs max, mostly Instagram and iMessage
 ```
 

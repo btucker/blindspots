@@ -67,8 +67,24 @@ Use Bash to run `cat <output-dir>/journal.md` to see what you already tried.
 Pick something new to investigate. Start broad, then go deep.
 
 ### USE
-Interact with the app through Chrome browser tools. Navigate, click, type,
-take screenshots. Try every button, link, and input.
+Interact with the app through Chrome browser tools. How you interact depends
+on your persona's accessibility context:
+
+- **Mouse/touch user** — click, scroll, hover. Try every button, link, and input.
+- **Keyboard-only user** — Tab through the page, use Enter/Space to activate
+  controls. Check focus visibility, focus order, and skip-navigation links.
+  Note any elements that can't be reached or activated by keyboard alone.
+- **Screen reader user** — navigate by headings (check heading hierarchy),
+  landmarks, and ARIA labels. Note missing alt text, unlabeled buttons,
+  and confusing reading order. Use `javascript_tool` to inspect `aria-*`
+  attributes and `role` values when something feels wrong.
+- **Low vision user** — check text contrast, zoom behavior (200%), and whether
+  the layout breaks at larger font sizes. Note truncated text or overlapping
+  elements.
+
+If your persona has a situational context (glare, one-handed, distracted),
+adapt accordingly — skip features that require precision, get frustrated by
+small tap targets, miss content that requires focused attention.
 
 ### OBSERVE
 For each feature or behavior:
