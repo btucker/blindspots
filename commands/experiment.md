@@ -1,6 +1,6 @@
 ---
 name: experiment
-description: A/B test two product variants with blind personas. Runs the same personas against both variants in parallel, then synthesizes a ship/no-ship verdict.
+description: A/B test two product variants with synthetic personas. Runs the same personas against both variants in parallel, then synthesizes a ship/no-ship verdict.
 arguments:
   - name: options
     description: "<test-name> <label>=<source> <label>=<source> [--runs N] [--persona <name>]"
@@ -8,7 +8,7 @@ arguments:
 
 # Blindspots — Experiment
 
-A/B test two product variants with blind personas.
+A/B test two product variants with synthetic personas.
 
 ## Step 1: Parse Arguments
 

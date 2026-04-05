@@ -2,8 +2,8 @@
 
 Compare specifications and user reactions for the same product:
 
-1. **Discovered specs** — written by someone who explored the product blind, with
-   no documentation, purely from observation.
+1. **Discovered specs** — written by someone who explored the product with no
+   insider knowledge, no documentation, purely from observation.
 2. **Actual specs** — the real requirements the product was built against.
 3. **Reactions** (optional) — the persona's emotional responses during exploration
    (surprises, delights, frustrations, confusions, anxieties).
@@ -15,7 +15,7 @@ Requirements that appear in both documents (even if worded differently).
 For each: discovered ID, actual ID, and how closely they align.
 
 ### 2. Undiscoverable
-Requirements in the actual specs that the blind explorer did NOT discover.
+Requirements in the actual specs that the explorer did NOT discover.
 For each: actual spec ID, and assessment of WHY it was missed:
 - **Hidden** — feature exists but is not visible or obvious in the UI
 - **Deep** — requires specific knowledge or multi-step interaction to reach
@@ -25,7 +25,7 @@ For each: actual spec ID, and assessment of WHY it was missed:
 This is the most valuable section. These are UX discoverability gaps.
 
 ### 3. Unspecified
-Behaviors the blind explorer documented that do NOT appear in the actual specs.
+Behaviors the explorer documented that do NOT appear in the actual specs.
 For each: discovered ID, and assessment:
 - **Spec gap** — real behavior that should be in the specs
 - **Implementation detail** — not worth specifying

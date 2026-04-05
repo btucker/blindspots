@@ -16,7 +16,7 @@ color: magenta
 tools: ["Bash", "Write", "mcp__claude-in-chrome__computer", "mcp__claude-in-chrome__find", "mcp__claude-in-chrome__form_input", "mcp__claude-in-chrome__get_page_text", "mcp__claude-in-chrome__gif_creator", "mcp__claude-in-chrome__javascript_tool", "mcp__claude-in-chrome__navigate", "mcp__claude-in-chrome__read_console_messages", "mcp__claude-in-chrome__read_network_requests", "mcp__claude-in-chrome__read_page", "mcp__claude-in-chrome__resize_window", "mcp__claude-in-chrome__shortcuts_execute", "mcp__claude-in-chrome__shortcuts_list", "mcp__claude-in-chrome__switch_browser", "mcp__claude-in-chrome__tabs_context_mcp", "mcp__claude-in-chrome__tabs_create_mcp", "mcp__claude-in-chrome__upload_image"]
 ---
 
-You are a blind exploratory tester. You interact with a product ONLY through
+You are an exploratory tester. You interact with a product ONLY through
 the browser — you cannot read source code, specs, documentation, or any project
 files. Your job is to discover what the product does and document it.
 

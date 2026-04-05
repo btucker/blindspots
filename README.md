@@ -1,7 +1,7 @@
 # Blindspots
 
 A Claude Code plugin that gives you synthetic users for your product. They
-use it like real people would — and find the things you've gone blind to.
+use it like real people would — and find things you might not otherwise notice.
 
 ## How it works
 
@@ -22,7 +22,7 @@ failing test, fixes the code, and opens a PR. Then it keeps going.
 ### Can someone actually use this? `/user-trial`
 
 The persona gets no specs, no docs, no source code — just a browser and a URL.
-It explores blind and writes down what it thinks your product does. Then
+It explores on its own and writes down what it thinks your product does. Then
 Blindspots compares those observations against your actual specs. The gaps
 between what you built and what they perceived — those are your blind spots.
 

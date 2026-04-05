@@ -13,7 +13,7 @@ actual specifications.
 ## Inputs
 
 You will be given:
-1. **Discovered specs** — `.blindspots/discovered-specs.md` (written during blind exploration)
+1. **Discovered specs** — `.blindspots/discovered-specs.md` (written during exploration)
 2. **Reactions** — `.blindspots/reactions.md` (persona's emotional responses, if it exists)
 3. **Actual spec files** — one or more file paths containing the real requirements
 
@@ -37,7 +37,7 @@ You will be given:
 
 The report must cover:
 - **Matched** — requirements found in both (with discovered IDs and actual spec IDs + source file)
-- **Undiscoverable** — actual specs the blind explorer missed (with WHY, enriched by reactions)
+- **Undiscoverable** — actual specs the explorer missed (with WHY, enriched by reactions)
 - **Unspecified** — discovered behaviors not in any actual spec file
 - **Expectation Mismatches** — same feature, different description (enriched by reactions)
 - **UX Highlights** — top delights and top frustrations from the persona's experience
