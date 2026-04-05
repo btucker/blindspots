@@ -45,16 +45,14 @@ demand.
 claude plugin install blindspots from btucker/blindspots
 ```
 
-## Setup
-
-1. Run `/dogfood` from within Claude Code.
-2. Follow the prompts
-
 ## Config
 
-Running any command for the first time triggers interactive setup. It reads your
-project, asks a few questions, and generates `.blindspots/config.md` and
-`.blindspots/personas.md`. You can also run `/setup` directly to regenerate.
+Run any command — `/dogfood`, `/user-trial`, `/experiment`, `/interview` — and
+blindspots will walk you through setup on first run. Or run `/setup` directly.
+
+Setup reads your project, asks a few questions, and generates
+`.blindspots/config.md` and `.blindspots/personas.md`. Run `/setup --fresh`
+to regenerate.
 
 A generated config looks something like:
 
