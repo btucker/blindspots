@@ -1,1 +1,11 @@
 .DS_Store
+.worktrees/
+
+# Blindspots session output (config and personas are committed)
+.blindspots/journal.md
+.blindspots/discovered-specs.md
+.blindspots/reactions.md
+.blindspots/comparison.md
+.blindspots/screenshots/
+.blindspots/experiments/
+.blindspots/interviews/
