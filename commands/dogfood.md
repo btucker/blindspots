@@ -1,6 +1,6 @@
 ---
 name: dogfood
-description: Dogfood your product against its specs. Runs a persona-driven testing loop that explores, finds bugs, writes failing tests, fixes code, and opens PRs.
+description: Dogfood your product against its specs. Runs a persona-driven testing loop that explores, finds bugs, fixes code, and commits fixes to a branch.
 arguments:
   - name: options
     description: "--persona <name> for a specific persona, --fresh to start over"
@@ -82,3 +82,33 @@ The `## Specs` section lists paths/globs, one per line with optional description
 ```
 
 Strip leading `- ` and `— description` suffix. Expand globs with Glob tool.
+
+## Step 8: Wrap-up
+
+When the loop ends (user cancels or the cycle exhausts ideas):
+
+1. Clean up the worktree:
+
+```bash
+WORKTREE_PATH=".worktrees/$BRANCH"
+git worktree remove "$WORKTREE_PATH" 2>/dev/null || true
+```
+
+2. Return to the project root (the original working directory before Step 6).
+
+3. Print a summary of the work on the branch:
+
+```bash
+echo "## Dogfood summary: $BRANCH"
+git log main..$BRANCH --oneline
+git diff main..$BRANCH --stat
+```
+
+Include a one-line description of each fix from the persona's dogfood journal.
+
+4. Present two options:
+   - **Switch to the branch** — run `git checkout $BRANCH` so the user can review changes
+   - **Finish the work** — invoke `finishing-a-development-branch` to handle PR, merge, or cleanup
+
+If the branch has no commits (nothing was found/fixed), just clean up the
+worktree silently and report that no issues were found.
