@@ -25,7 +25,7 @@ Config is checked in; session output is gitignored.
 
 | File | Purpose |
 |------|---------|
-| `.blindspots/config.md` | Project testing config (setup, URL, explore, diagnose, test, specs) |
+| `.blindspots/config.md` | Project testing config (setup, start, explore, diagnose, test, specs) |
 | `.blindspots/personas.md` | Pool of user personas |
 
 ### Output (gitignored)
@@ -53,14 +53,17 @@ startup pattern:
 
 1. Check for `.blindspots/config.md` — run `blindspots:setup` if missing
 2. Check for `.blindspots/personas.md` — run `blindspots:setup` if missing
-3. Select persona (random or `--persona <name>`)
+3. Select persona — method varies by command:
+   - `/dogfood`, `/user-trial`: random, or `--persona <name>`
+   - `/interview`: shows persona list with panel option, asks user to pick
+   - `/experiment`: prompts interactively (test name, variants, user type, run count)
 4. Run setup commands from config
 5. Infer interface mode from `## Start` (browser or terminal)
 6. Mode-specific launch with `BLINDSPOTS_DEPTH=1`
 
 ## Reference Files
 
-- **`references/dogfood-cycle.md`** — Guided testing cycle (EXPLORE → DIAGNOSE → RED → GREEN → PR)
+- **`references/dogfood-cycle.md`** — Guided testing cycle (EXPLORE → USE → DIAGNOSE → FIX → COMMIT)
 - **`references/compare-prompt.md`** — Spec comparison methodology
 - **`references/persona-template.md`** — Persona generation template
 - **`references/experiment-verdict-prompt.md`** — A/B verdict methodology
