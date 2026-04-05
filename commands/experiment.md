@@ -3,7 +3,7 @@ name: experiment
 description: A/B test two product variants with synthetic personas. Runs the same personas against both variants in parallel, then synthesizes a ship/no-ship verdict.
 arguments:
   - name: options
-    description: "<test-name> <label>=<source> <label>=<source> [--runs N] [--persona <name>]"
+    description: "<test-name> <label>=<source> <label>=<source> [--runs N] [--persona <name>] — all optional, prompts for missing values"
 ---
 
 # Blindspots — Experiment
@@ -15,37 +15,71 @@ A/B test two product variants with synthetic personas.
 Check `BLINDSPOTS_DEPTH` environment variable. If >= 1, skip — inform the user
 that nested experiment sessions are not supported.
 
-## Step 1: Parse Arguments
+## Step 1: Validate
 
-```
-blindspots:experiment <test-name> <label>=<source> <label>=<source> [--runs N] [--persona <name>]
-```
+Read `.blindspots/config.md`. If it does not exist, run the setup command
+(`blindspots:setup`) before continuing.
 
-- `<test-name>` — names the experiment directory
-- `<label>=<source>` — two variant specs. Source types:
-  - URL (starts with `http`) → use directly
-  - Path (contains `/` or `.`) → read `.blindspots/config.md`, run setup, start server
-  - Branch (otherwise) → create worktree, read config, run setup, start server
-- `--runs N` (default 3) — personas per variant (2N total agents)
-- `--persona <name>` — run only this persona (2 agents total, for debugging)
+Read `.blindspots/personas.md`. If it does not exist, run the setup command
+(`blindspots:setup`) before continuing.
 
-When no `=` present, the source is also the label.
+## Step 2: Gather Parameters
+
+Parse any arguments provided. For anything missing, ask interactively.
+
+### Test name
+
+If not given as first positional argument, ask:
+"What should this experiment be called?" Suggest a name based on context
+(e.g. the current branch name, recent commits).
+
+### Variants
+
+If two `<label>=<source>` pairs not given, ask:
+
+1. "What's the first variant?" — ask for a label and source.
+   Show source type examples:
+   - URL: `http://localhost:3000`
+   - Branch: `main`
+   - Path: `~/projects/myapp`
+
+2. "What's the second variant?" — same format.
+
+When no `=` is present, the source is also the label.
+
+Source type detection:
+- Starts with `http` → URL
+- Contains `/` or `.` → path
+- Otherwise → branch
 
 For path/branch sources, assign ports (3000 for first variant, 3001 for second,
 or find free ports).
 
-## Step 2: Personas
+### Runs
 
-Read `.blindspots/config.md`. If it does not exist, run the setup command (`blindspots:setup`) before continuing.
+If `--runs` not given, ask:
+"How many personas per variant?" Default: 3.
 
-Read `.blindspots/personas.md`. If it does not exist, run the setup command (`blindspots:setup`) before continuing.
+### User type
 
-Select N personas (exclude anti-persona):
-- If `--persona` given, use only that persona
-- Otherwise pick N random (capped at persona count)
-- Same personas run both variants (paired comparison)
+Ask: "Should these be new users or returning users?"
 
-## Step 2b: Infer Interface Mode
+- **New users** — personas explore with no prior context. Tests first impressions,
+  onboarding, discoverability.
+- **Returning users** — personas are loaded with context from a previous user trial
+  or experiment (if available). Tests whether changes improve the experience for
+  people who already know the product.
+
+If returning users selected, check for existing session output in `.blindspots/`
+and load the relevant journal/reactions as persona context.
+
+### Personas
+
+If `--persona` given, use only that persona.
+Otherwise pick N random personas (capped at persona count, exclude anti-persona).
+Same personas run both variants (paired comparison).
+
+## Step 3: Infer Interface Mode
 
 Determine which explorer agent to use:
 
@@ -57,14 +91,14 @@ Determine which explorer agent to use:
    (fall back to `## URL` for backward compat). If it contains a URL (starts with
    `http` or `localhost`), use **browser mode**. Otherwise use **terminal mode**.
 
-## Step 3: Setup Variants
+## Step 4: Setup Variants
 
 Resolve each variant:
 - URL: verify reachable with `curl -s -o /dev/null -w "%{http_code}" <url>`
 - Path: read `.blindspots/config.md` from path, run setup, start server
 - Branch: create worktree from branch, read config, run setup, start server
 
-## Step 4: Create Directories
+## Step 5: Create Directories
 
 ```
 .blindspots/experiments/<test-name>/
@@ -81,7 +115,7 @@ Resolve each variant:
 Persona slug: heading name lowercased, spaces to hyphens, tagline stripped.
 Run number: 1-based, same number on both variants for pairing.
 
-## Step 5: Write Manifest
+## Step 6: Write Manifest
 
 Write `.blindspots/experiments/<test-name>/manifest.md`:
 
@@ -97,7 +131,7 @@ Write `.blindspots/experiments/<test-name>/manifest.md`:
 - **Status**: running
 ```
 
-## Step 6: Launch All Agents in Parallel
+## Step 7: Launch All Agents in Parallel
 
 Set depth before launching:
 
@@ -137,7 +171,7 @@ Start instructions:
 
 Wait for all agents to complete. Update manifest status to `complete`.
 
-## Step 7: Verdict
+## Step 8: Verdict
 
 Launch the `experiment-verdict` agent with:
 - The experiment directory path (`.blindspots/experiments/<test-name>/`)
