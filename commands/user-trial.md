@@ -1,14 +1,14 @@
 ---
-name: trial
-description: Run a blind user trial. A tool-restricted persona explores the product with no specs, no docs, no source code — only the browser. Discovers what the product does and documents it.
+name: user-trial
+description: Run a user trial. A tool-restricted persona explores the product with no specs, no docs, no source code — only the browser. Discovers what the product does and documents it.
 arguments:
   - name: options
     description: "--persona <name> for a specific persona, --fresh to start over"
 ---
 
-# Blindspots — Trial
+# Blindspots — User Trial
 
-Run a blind user trial. A persona explores your product with zero context —
+Run a user trial. A persona explores your product with zero context —
 no specs, no docs, no source code. They discover what it does and write
 specifications from observation.
 
@@ -19,7 +19,7 @@ Read `.blindspots/config.md`. Only needed for Setup, URL, and Specs sections.
 ## Step 2: Parse Arguments
 
 - `--persona <name>` — select a named persona
-- `--fresh` — clear previous trial output
+- `--fresh` — clear previous user trial output
 
 ## Step 3: Personas
 
@@ -45,7 +45,7 @@ Run setup commands from `## Setup` in `.blindspots/config.md`. Extract URL.
 
 ## Step 6: Launch
 
-Launch the `trial-explorer` agent with ONLY:
+Launch the `user-trial-explorer` agent with ONLY:
 
 ```
 The app is running at <URL>.
@@ -62,8 +62,8 @@ The agent has no Read, Grep, or Glob tools — true isolation.
 
 ## Step 7: Compare
 
-When the trial ends and `.blindspots/discovered-specs.md` exists, launch the
-`trial-compare` agent with:
+When the user trial ends and `.blindspots/discovered-specs.md` exists, launch the
+`user-trial-compare` agent with:
 - Path to `.blindspots/discovered-specs.md`
 - Path to `.blindspots/reactions.md`
 - All resolved spec file paths from `## Specs` in config

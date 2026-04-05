@@ -1,6 +1,6 @@
 ---
 name: experiment-verdict
-description: Synthesizes A/B experiment results into a ship/no-ship verdict. Use after all trial-explorer agents complete an experiment.
+description: Synthesizes A/B experiment results into a ship/no-ship verdict. Use after all user-trial-explorer agents complete an experiment.
 model: inherit
 color: green
 ---

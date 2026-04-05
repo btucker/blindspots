@@ -1,6 +1,6 @@
 ---
 name: blindspots
-description: This skill should be used when the user is running blindspots testing, when a ".blindspots/" directory exists in the project, when the user mentions "blindspots", "dogfood", "trial", "experiment", or "interview" in a testing context, or when working in a git branch starting with "blindspots/".
+description: This skill should be used when the user is running blindspots testing, when a ".blindspots/" directory exists in the project, when the user mentions "blindspots", "dogfood", "user-trial", "experiment", or "interview" in a testing context, or when working in a git branch starting with "blindspots/".
 ---
 
 # Blindspots — Find Your Product's Blind Spots
@@ -12,8 +12,8 @@ This skill provides context and guidance during an active blindspots session.
 | Command | Purpose | Has Specs? | Fixes Bugs? |
 |---------|---------|------------|-------------|
 | `blindspots:dogfood` | Test against specs, find regressions | Yes | Yes |
-| `blindspots:trial` | Blind persona discovers the product | No | No |
-| `blindspots:experiment` | A/B compare two variants with blind personas | No | No |
+| `blindspots:user-trial` | Persona discovers the product with no insider knowledge | No | No |
+| `blindspots:experiment` | A/B compare two variants with user trial personas | No | No |
 | `blindspots:interview` | Ask personas questions about the product | Depends | No |
 
 ## The .blindspots/ Directory
@@ -32,17 +32,17 @@ Config is checked in; session output is gitignored.
 | File | Mode | Purpose |
 |------|------|---------|
 | `.blindspots/journal.md` | dogfood | Session log |
-| `.blindspots/discovered-specs.md` | trial | Specs from observation |
-| `.blindspots/reactions.md` | trial | Persona emotional reactions |
-| `.blindspots/comparison.md` | trial | Discovered vs actual analysis |
+| `.blindspots/discovered-specs.md` | user-trial | Specs from observation |
+| `.blindspots/reactions.md` | user-trial | Persona emotional reactions |
+| `.blindspots/comparison.md` | user-trial | Discovered vs actual analysis |
 | `.blindspots/screenshots/` | all | Evidence |
 | `.blindspots/experiments/<name>/` | experiment | A/B test output |
 | `.blindspots/interviews/<name>.md` | interview | Interview transcripts |
 
 ## Agents
 
-- **`trial-explorer`** — Browser-only agent for blind discovery. No Read/Grep/Glob.
-- **`trial-compare`** — Analyzes discovered specs vs actual specs.
+- **`user-trial-explorer`** — Browser-only agent for user trial discovery. No Read/Grep/Glob.
+- **`user-trial-compare`** — Analyzes discovered specs vs actual specs.
 - **`experiment-verdict`** — Synthesizes A/B test results into ship/no-ship verdict.
 - **`interviewer`** — Conducts persona Q&A sessions.
 

@@ -80,7 +80,7 @@ Write `.blindspots/experiments/<test-name>/manifest.md`:
 
 ## Step 6: Launch All Agents in Parallel
 
-Launch 2N `trial-explorer` agents in parallel. Each receives:
+Launch 2N `user-trial-explorer` agents in parallel. Each receives:
 
 ```
 The app is running at <variant-url>.

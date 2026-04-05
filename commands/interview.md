@@ -1,15 +1,15 @@
 ---
 name: interview
-description: Interview a persona about the product. Ask questions before, after, or instead of a trial. Synthetic user research.
+description: Interview a persona about the product. Ask questions before, after, or instead of a user trial. Synthetic user research.
 arguments:
   - name: options
-    description: "--persona <name> for a specific persona, --context <trial|experiment-name> to load prior experience"
+    description: "--persona <name> for a specific persona, --context <user-trial|experiment-name> to load prior experience"
 ---
 
 # Blindspots — Interview
 
 Conduct a persona interview. Ask questions about expectations, reactions,
-and preferences — before they've seen the product, after a trial, or standalone.
+and preferences — before they've seen the product, after a user trial, or standalone.
 
 ## Step 1: Personas
 
@@ -23,11 +23,11 @@ Generate `.blindspots/personas.md` if missing (same as other commands).
 ## Step 2: Parse Arguments
 
 - `--persona <name>` — required for interview (must specify who to talk to)
-- `--context trial` — load this persona's prior trial output (journal, reactions,
+- `--context user-trial` — load this persona's prior user trial output (journal, reactions,
   discovered specs) to give them memory of the experience
 - `--context <experiment-name>` — load this persona's experiment output for a
   specific variant (will be asked which variant)
-- No `--context` — persona answers from their background only (pre-trial interview)
+- No `--context` — persona answers from their background only (pre-user-trial interview)
 
 ## Step 3: Select Persona
 
@@ -36,9 +36,9 @@ and background.
 
 ## Step 4: Load Context (if applicable)
 
-If `--context trial`:
+If `--context user-trial`:
 - Read `.blindspots/journal.md`, `.blindspots/reactions.md`, `.blindspots/discovered-specs.md`
-- The persona now "remembers" their trial experience
+- The persona now "remembers" their user trial experience
 
 If `--context <experiment-name>`:
 - Ask which variant to load context from
@@ -49,8 +49,8 @@ If `--context <experiment-name>`:
 
 Launch the `interviewer` agent with:
 - The persona (name + full description)
-- Any loaded context (trial/experiment output)
-- Whether this is pre-trial, post-trial, or standalone
+- Any loaded context (user trial/experiment output)
+- Whether this is pre-user-trial, post-user-trial, or standalone
 
 The agent runs interactively — the user types questions, the persona responds
 in character. The conversation is saved to `.blindspots/interviews/<persona-slug>-<timestamp>.md`.

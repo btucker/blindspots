@@ -1,13 +1,13 @@
 ---
-name: trial-compare
-description: Compares discovered specs from a blind trial against actual project specs. Use after a trial session produces .blindspots/discovered-specs.md.
+name: user-trial-compare
+description: Compares discovered specs from a user trial against actual project specs. Use after a user trial session produces .blindspots/discovered-specs.md.
 model: inherit
 color: cyan
 ---
 
 # Spec Comparison Agent
 
-Compare discovered specifications from a blind trial against the project's
+Compare discovered specifications from a user trial against the project's
 actual specifications.
 
 ## Inputs

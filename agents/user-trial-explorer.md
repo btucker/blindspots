@@ -1,13 +1,13 @@
 ---
-name: trial-explorer
-description: Use this agent for blind user trials — discovering what a product does with NO access to specs, source code, or documentation. Only interacts through the browser.
+name: user-trial-explorer
+description: Use this agent for user trials — discovering what a product does with NO access to specs, source code, or documentation. Only interacts through the browser.
 
 <example>
-Context: User wants to run a blind trial to test UX discoverability.
-user: "blindspots:trial"
-assistant: "Starting blind trial. Launching the trial-explorer agent with browser-only access."
+Context: User wants to run a user trial to test UX discoverability.
+user: "blindspots:user-trial"
+assistant: "Starting user trial. Launching the user-trial-explorer agent with browser-only access."
 <commentary>
-Blind mode requires tool isolation — the agent must not be able to read source code, specs, or docs. Only browser interaction and writing output files.
+User trial mode requires tool isolation — the agent must not be able to read source code, specs, or docs. Only browser interaction and writing output files.
 </commentary>
 </example>
 

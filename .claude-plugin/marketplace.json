@@ -1,14 +1,14 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "blindspots",
-  "description": "Find your product's blind spots — dogfood against specs, run blind user trials, A/B experiment across variants, and interview synthetic personas",
+  "description": "Find your product's blind spots — dogfood against specs, run user trials, A/B experiment across variants, and interview synthetic personas",
   "owner": {
     "name": "Ben Tucker"
   },
   "plugins": [
     {
       "name": "blindspots",
-      "description": "Find your product's blind spots — dogfood against specs, run blind user trials, A/B experiment across variants, and interview synthetic personas",
+      "description": "Find your product's blind spots — dogfood against specs, run user trials, A/B experiment across variants, and interview synthetic personas",
       "source": "./",
       "category": "testing"
     }
