@@ -51,6 +51,25 @@ Write `.blindspots/config.md` with the gathered information. Use `## Start` (not
 3. Run 2-4 web searches about the target audience demographics and pain points
 4. Generate 5-6 persona candidates + one anti-persona
 
+## Step 5b: Validate Diversity
+
+Check the generated personas against the diversity checklist from the template.
+Print the checklist with each item marked as covered or missing, and which
+persona satisfies it:
+
+```
+Diversity check:
+  ✓ Accessibility needs — <persona name> (screen reader)
+  ✗ Mobile-primary user — no persona covers this
+  ✓ Poor connectivity — <persona name> (2G, old Android)
+  ...
+```
+
+If any required items are uncovered, adjust an existing persona or generate an
+additional one to fill the gap before presenting to the user. The goal is to
+present a set that already satisfies the checklist — not to hope the user
+notices gaps.
+
 ## Step 6: Present Personas
 
 Present each persona to the user one at a time:
