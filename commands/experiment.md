@@ -126,6 +126,7 @@ Write `.blindspots/experiments/<test-name>/manifest.md`:
 - **Variant A**: <label> (<url>)
 - **Variant B**: <label> (<url>)
 - **Personas**: <name> (<run>), ...
+- **User type**: new | returning
 - **Runs per variant**: <N>
 - **Total agents**: <2N>
 - **Status**: running
@@ -169,6 +170,17 @@ Start instructions:
 <content from ## Start in .blindspots/config.md>
 ```
 
+For **returning users**, append prior experience to each agent's prompt:
+
+```
+## Your Prior Experience
+
+You have used this product before. Here is what you remember:
+
+<contents of journal.md, reactions.md, and discovered-specs.md from the
+persona's most recent user trial or experiment session>
+```
+
 Wait for all agents to complete. Update manifest status to `complete`.
 
 ## Step 8: Verdict
@@ -176,6 +188,7 @@ Wait for all agents to complete. Update manifest status to `complete`.
 Launch the `experiment-verdict` agent with:
 - The experiment directory path (`.blindspots/experiments/<test-name>/`)
 - All resolved spec file paths from `.blindspots/config.md`
+- Whether this tested new or returning users
 
 ## Resolving Specs
 
