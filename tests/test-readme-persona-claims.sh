@@ -1,28 +1,38 @@
 #!/bin/bash
 # Test: README persona selection claims match command implementations
 #
-# README says "Every command picks a random persona unless you pass --persona"
-# but /interview requires --persona. The README should note this exception.
+# /dogfood, /user-trial, /experiment should support random persona selection.
+# /interview should present a list for interactive selection.
+# README should accurately describe both behaviors.
 
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 FAIL=0
 
-# Check if README claims all commands pick random personas
+# Check that README does NOT make a blanket "every command" claim
 if grep -q "Every command picks a random persona" "$REPO_ROOT/README.md"; then
-  echo "README claims: every command picks a random persona"
-
-  # Check if interview command says --persona is required
-  if grep -q "required for interview" "$REPO_ROOT/commands/interview.md"; then
-    echo "FAIL: interview command requires --persona, contradicting README's 'every command' claim"
-    echo "  README should note that /interview requires --persona"
-    FAIL=1
-  else
-    echo "PASS: no contradiction found"
-  fi
+  echo "FAIL: README still makes blanket 'every command' claim about random persona selection"
+  FAIL=1
 else
-  echo "PASS: README does not make blanket 'every command' claim about persona selection"
+  echo "PASS: README does not make blanket persona claim"
+fi
+
+# Check that interview command does NOT require --persona
+if grep -q "required for interview" "$REPO_ROOT/commands/interview.md"; then
+  echo "FAIL: interview command still requires --persona instead of interactive selection"
+  FAIL=1
+else
+  echo "PASS: interview command does not require --persona"
+fi
+
+# Check that interview command supports interactive persona selection
+if grep -q "present the available personas" "$REPO_ROOT/commands/interview.md" || \
+   grep -q "ask the user to pick" "$REPO_ROOT/commands/interview.md"; then
+  echo "PASS: interview command supports interactive persona selection"
+else
+  echo "FAIL: interview command does not describe interactive persona selection"
+  FAIL=1
 fi
 
 exit $FAIL

@@ -87,5 +87,4 @@ about your target audience. Saved to `.blindspots/personas.md` — check it in,
 edit it, make them yours.
 
 `/dogfood`, `/user-trial`, and `/experiment` pick a random persona unless you
-pass `--persona "name"`. `/interview` requires `--persona` — you need to
-specify who you're talking to.
+pass `--persona "name"`. `/interview` shows you the list and lets you choose.

@@ -3,7 +3,7 @@ name: interview
 description: Interview a persona about the product. Ask questions before, after, or instead of a user trial. Synthetic user research.
 arguments:
   - name: options
-    description: "--persona <name> for a specific persona, --context <user-trial|experiment-name> to load prior experience"
+    description: "--persona <name> to skip selection, --context <user-trial|experiment-name> to skip context prompt"
 ---
 
 # Blindspots — Interview
@@ -11,46 +11,55 @@ arguments:
 Conduct a persona interview. Ask questions about expectations, reactions,
 and preferences — before they've seen the product, after a user trial, or standalone.
 
-## Step 1: Personas
+## Step 1: Validate
 
-Generate `.blindspots/personas.md` if missing (same as other commands).
+Read `.blindspots/config.md`. If it does not exist, run the setup command
+(`blindspots:setup`) before continuing.
 
-1. Read `README.md`, `.blindspots/config.md`, and resolved spec files (~2000 chars each)
-2. Read persona template from `${CLAUDE_PLUGIN_ROOT}/skills/blindspots/references/persona-template.md`
-3. Run 2-4 web searches about the target audience
-4. Write `.blindspots/personas.md` with 5-6 personas + one anti-persona
+Read `.blindspots/personas.md`. If it does not exist, run the setup command
+(`blindspots:setup`) before continuing.
 
-## Step 2: Parse Arguments
+## Step 2: Select Persona
 
-- `--persona <name>` — required for interview (must specify who to talk to)
-- `--context user-trial` — load this persona's prior user trial output (journal, reactions,
-  discovered specs) to give them memory of the experience
-- `--context <experiment-name>` — load this persona's experiment output for a
-  specific variant (will be asked which variant)
-- No `--context` — persona answers from their background only (pre-user-trial interview)
+If `--persona <name>` given, substring match against `.blindspots/personas.md`.
 
-## Step 3: Select Persona
+Otherwise, present the available personas and ask the user to pick one:
 
-Read `.blindspots/personas.md`, find the named persona. Print their name, quote,
-and background.
+- List each persona's name and quote (exclude the anti-persona)
+- Ask: "Who would you like to interview?"
 
-## Step 4: Load Context (if applicable)
+Print the selected persona's name, quote, and background.
 
-If `--context user-trial`:
-- Read `.blindspots/journal.md`, `.blindspots/reactions.md`, `.blindspots/discovered-specs.md`
-- The persona now "remembers" their user trial experience
+## Step 3: Select Context
 
-If `--context <experiment-name>`:
-- Ask which variant to load context from
-- Read `.blindspots/experiments/<name>/<variant>/<persona-run>/` output files
-- The persona remembers their experience with that variant
+If `--context` given, use it directly (see below).
 
-## Step 5: Launch
+Otherwise, check what prior sessions exist and ask the user:
+
+1. Look for existing trial/experiment output:
+   - `.blindspots/journal.md` and `.blindspots/discovered-specs.md` → user trial exists
+   - `.blindspots/experiments/*/` → experiment sessions exist
+2. Present options based on what's available:
+   - **"Fresh — no prior experience"** (always available)
+   - **"After their user trial"** (if user trial output exists)
+   - **"After experiment: <name>"** (one option per experiment directory found)
+3. Ask: "What context should this persona have?"
+
+### Loading context
+
+- **Fresh**: No context loaded. Persona answers from their background only.
+- **User trial**: Read `.blindspots/journal.md`, `.blindspots/reactions.md`,
+  `.blindspots/discovered-specs.md`. The persona "remembers" their user trial.
+- **Experiment**: Ask which variant if not obvious, then read
+  `.blindspots/experiments/<name>/<variant>/<persona-run>/` output files.
+  The persona remembers their experience with that variant.
+
+## Step 4: Launch
 
 Launch the `interviewer` agent with:
 - The persona (name + full description)
 - Any loaded context (user trial/experiment output)
-- Whether this is pre-user-trial, post-user-trial, or standalone
+- The context type (fresh, post-user-trial, post-experiment)
 
 The agent runs interactively — the user types questions, the persona responds
 in character. The conversation is saved to `.blindspots/interviews/<persona-slug>-<timestamp>.md`.
