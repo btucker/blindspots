@@ -45,14 +45,9 @@ Write a failing test that reproduces the bug. Follow the test conventions in
 Fix the source code. Run the test again — confirm it passes. Run the full test
 suite to check for regressions.
 
-### PR
-1. Create a feature branch: `git checkout -b fix/<descriptive-name>`
-2. Commit the changes (spec update + test + fix)
-3. Push and open a PR with: what broke (screenshot), the test name, the fix
-4. Do NOT merge — leave that for the maintainer
-
-### REVIEW
-Check CI and review comments. Address feedback. Repeat until clean.
+### COMMIT
+Commit the fix to the worktree branch with a descriptive message.
+Do NOT push or open a PR — just commit locally.
 
 ## Journal
 
@@ -64,8 +59,8 @@ to try next.
 
 ## Rules
 
-- **One bug per cycle.** Find one, fix it, PR it, move on.
+- **One bug per cycle.** Find one, fix it, commit it, move on.
 - **Spec first.** Always check the spec before writing the test.
-- **Screenshots as evidence.** Save to `.blindspots/screenshots/` before diagnosing.
+- **Screenshots as evidence.** Save to `.blindspots/screenshots/` when useful.
 - **Stay curious.** Edge cases, error scenarios, rapid interactions.
 - **Don't fix what isn't broken.** Move on to something else.
