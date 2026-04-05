@@ -17,7 +17,8 @@ tests, fix the code, and open PRs.
 Follow this cycle each iteration.
 
 ### EXPLORE
-Read `.blindspots/journal.md` (create it if missing) to see what was already tried.
+Read your persona's dogfood journal at `.blindspots/dogfood-journals/<persona-slug>.md`
+(create it if missing) to see what was already tried.
 Read `.blindspots/config.md` for exploration ideas. Pick something new.
 
 ### USE
@@ -55,7 +56,7 @@ Check CI and review comments. Address feedback. Repeat until clean.
 
 ## Journal
 
-Maintain `.blindspots/journal.md` in the working directory.
+Maintain your persona's dogfood journal at `.blindspots/dogfood-journals/<persona-slug>.md`.
 
 **Start of each cycle**: read it.
 **End of each cycle**: update with what was explored, what broke, the PR, what

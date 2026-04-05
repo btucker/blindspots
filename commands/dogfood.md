@@ -19,7 +19,7 @@ Check `BLINDSPOTS_DEPTH` environment variable. If >= 1, run the dogfood cycle di
 ## Step 2: Parse Arguments
 
 - `--persona <name>` — select a named persona (substring match, case-insensitive)
-- `--fresh` — delete `.blindspots/journal.md` to start fresh
+- `--fresh` — delete the selected persona's dogfood journal to start fresh
 
 ## Step 3: Personas
 
@@ -33,7 +33,7 @@ Print selected persona name and quote.
 ## Step 5: Setup
 
 ```bash
-mkdir -p .blindspots/screenshots
+mkdir -p .blindspots/screenshots .blindspots/dogfood-journals
 ```
 
 Run setup commands from `## Setup` in `.blindspots/config.md`.
