@@ -36,13 +36,13 @@ If `--context` given, use it directly (see below).
 
 Otherwise, check what prior sessions exist and ask the user:
 
-1. Look for existing trial/experiment/dogfood output:
-   - `.blindspots/discovered-specs.md` and `.blindspots/reactions.md` → user trial exists
+1. Look for existing trial/experiment/dogfood output for this persona:
+   - `.blindspots/user-trials/<persona-slug>/discovered-specs.md` → user trial exists
    - `.blindspots/experiments/*/` → experiment sessions exist
    - `.blindspots/dogfood-journals/<persona-slug>.md` → this persona has dogfooded before
 2. Present options based on what's available:
    - **"Fresh — no prior experience"** (always available)
-   - **"After their user trial"** (if user trial output exists)
+   - **"After their user trial"** (if this persona's user trial output exists)
    - **"After experiment: <name>"** (one option per experiment directory found)
    - **"After dogfooding"** (if this persona's dogfood journal exists)
 3. Ask: "What context should this persona have?"
@@ -50,8 +50,10 @@ Otherwise, check what prior sessions exist and ask the user:
 ### Loading context
 
 - **Fresh**: No context loaded. Persona answers from their background only.
-- **User trial**: Read `.blindspots/reactions.md`,
-  `.blindspots/discovered-specs.md`. The persona "remembers" their user trial.
+- **User trial**: Read `.blindspots/user-trials/<persona-slug>/journal.md`,
+  `.blindspots/user-trials/<persona-slug>/reactions.md`, and
+  `.blindspots/user-trials/<persona-slug>/discovered-specs.md`.
+  The persona "remembers" their user trial.
 - **Dogfood**: Read `.blindspots/dogfood-journals/<persona-slug>.md`. The persona
   remembers the bugs they found and what they explored.
 - **Experiment**: Ask which variant if not obvious, then read

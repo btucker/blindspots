@@ -3,9 +3,7 @@
 
 # Blindspots session output (config and personas are committed)
 .blindspots/dogfood-journals/
-.blindspots/discovered-specs.md
-.blindspots/reactions.md
-.blindspots/comparison.md
+.blindspots/user-trials/
 .blindspots/screenshots/
 .blindspots/experiments/
 .blindspots/interviews/

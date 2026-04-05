@@ -1,6 +1,6 @@
 ---
 name: user-trial-compare
-description: Compares discovered specs from a user trial against actual project specs. Use after a user trial session produces .blindspots/discovered-specs.md.
+description: Compares discovered specs from a user trial against actual project specs. Use after a user trial session produces discovered-specs.md in the persona's output directory.
 model: inherit
 color: cyan
 ---
@@ -13,13 +13,13 @@ actual specifications.
 ## Inputs
 
 You will be given:
-1. **Discovered specs** — `.blindspots/discovered-specs.md` (written during exploration)
-2. **Reactions** — `.blindspots/reactions.md` (persona's emotional responses, if it exists)
+1. **Discovered specs** — path to `discovered-specs.md` (written during exploration)
+2. **Reactions** — path to `reactions.md` (persona's emotional responses, if it exists)
 3. **Actual spec files** — one or more file paths containing the real requirements
 
 ## Process
 
-1. Read `.blindspots/discovered-specs.md` and `.blindspots/reactions.md`.
+1. Read the discovered specs and reactions files at the paths provided.
 2. Read ALL actual spec files provided. These may include requirements docs, design
    specs, implementation plans, and other sources of truth. Read each completely.
 3. Read the comparison methodology from `${CLAUDE_PLUGIN_ROOT}/skills/blindspots/references/compare-prompt.md`.
@@ -30,7 +30,7 @@ You will be given:
 6. Use the reactions file to enrich the analysis — frustrations and confusions
    often point to undiscoverable features or expectation mismatches. Delights
    highlight what the UX is doing well.
-7. Write the report to `.blindspots/comparison.md`.
+7. Write the report to `comparison.md` in the same directory as the input files.
 8. Print a summary of the key findings.
 
 ## Output

@@ -25,7 +25,7 @@ Only needed for Setup, Start (or URL for backward compatibility), and Specs sect
 ## Step 2: Parse Arguments
 
 - `--persona <name>` — select a named persona
-- `--fresh` — clear previous user trial output
+- `--fresh` — clear the selected persona's user trial directory to start over
 
 ## Step 3: Personas
 
@@ -36,11 +36,15 @@ Read `.blindspots/personas.md`. If it does not exist, run the setup command (`bl
 Read `.blindspots/personas.md`. If `--persona` given, substring match. Otherwise random.
 Print selected persona name and quote.
 
+Derive persona slug: heading name lowercased, spaces to hyphens, tagline stripped.
+
 ## Step 5: Setup
 
 ```bash
-mkdir -p .blindspots/screenshots
+mkdir -p .blindspots/user-trials/<persona-slug>/screenshots
 ```
+
+If `--fresh`, delete contents of `.blindspots/user-trials/<persona-slug>/` first.
 
 Run setup commands from `## Setup` in `.blindspots/config.md`.
 Read `## Start` from config (or `## URL` for backward compatibility).
@@ -65,7 +69,11 @@ Set the depth guard before launching:
 export BLINDSPOTS_DEPTH=1
 ```
 
-Launch the explorer agent matching the inferred mode:
+Launch the explorer agent matching the inferred mode.
+
+The output directory for this persona is `.blindspots/user-trials/<persona-slug>/`.
+If a journal already exists there, this is a **return visit** — the persona
+continues from where they left off.
 
 ### Browser mode
 
@@ -73,12 +81,13 @@ Launch the `user-trial-explorer-browser` agent with ONLY:
 
 ```
 The app is running at <Start URL>.
+Output directory: .blindspots/user-trials/<persona-slug>/
 
 Your persona:
 ## <persona name>
 <full persona description>
 
-Navigate to the app URL and start exploring. Write all output to .blindspots/.
+Navigate to the app URL and start exploring.
 ```
 
 ### Terminal mode
@@ -88,12 +97,13 @@ Launch the `user-trial-explorer-terminal` agent with ONLY:
 ```
 Start instructions:
 <full text from ## Start>
+Output directory: .blindspots/user-trials/<persona-slug>/
 
 Your persona:
 ## <persona name>
 <full persona description>
 
-Follow the start instructions and begin exploring. Write all output to .blindspots/.
+Follow the start instructions and begin exploring.
 ```
 
 Do NOT include content from config.md (explore ideas, diagnostics, specs).
@@ -101,10 +111,10 @@ The agents have restricted tools — true isolation.
 
 ## Step 7: Compare
 
-When the user trial ends and `.blindspots/discovered-specs.md` exists, launch the
-`user-trial-compare` agent with:
-- Path to `.blindspots/discovered-specs.md`
-- Path to `.blindspots/reactions.md`
+When the user trial ends and `.blindspots/user-trials/<persona-slug>/discovered-specs.md`
+exists, launch the `user-trial-compare` agent with:
+- Path to `.blindspots/user-trials/<persona-slug>/discovered-specs.md`
+- Path to `.blindspots/user-trials/<persona-slug>/reactions.md`
 - All resolved spec file paths from `## Specs` in config
 
 ## Resolving Specs
