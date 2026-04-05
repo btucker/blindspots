@@ -13,6 +13,9 @@ and preferences — before they've seen the product, after a user trial, or stan
 
 ## Step 1: Validate
 
+Check `BLINDSPOTS_DEPTH` environment variable. If >= 1, skip — inform the user
+that nested interview sessions are not supported and stop.
+
 Read `.blindspots/config.md`. If it does not exist, run the setup command
 (`blindspots:setup`) before continuing.
 
