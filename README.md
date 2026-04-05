@@ -86,4 +86,6 @@ Generated automatically on first run from your project context and web research
 about your target audience. Saved to `.blindspots/personas.md` — check it in,
 edit it, make them yours.
 
-Every command picks a random persona unless you pass `--persona "name"`.
+`/dogfood`, `/user-trial`, and `/experiment` pick a random persona unless you
+pass `--persona "name"`. `/interview` requires `--persona` — you need to
+specify who you're talking to.
