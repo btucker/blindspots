@@ -1,0 +1,20 @@
+{
+  "name": "blindspots",
+  "interface": {
+    "displayName": "Blindspots"
+  },
+  "plugins": [
+    {
+      "name": "blindspots",
+      "source": {
+        "source": "local",
+        "path": "./plugins/blindspots"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Testing"
+    }
+  ]
+}
