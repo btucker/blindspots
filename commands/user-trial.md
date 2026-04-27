@@ -117,6 +117,27 @@ exists, launch the `user-trial-compare` agent with:
 - Path to `.blindspots/user-trials/<persona-slug>/reactions.md`
 - All resolved spec file paths from `## Specs` in config
 
+## Step 8: Generate HTML report
+
+After comparison (or directly after exploration if no specs were configured),
+emit a self-contained HTML report. Run:
+
+```bash
+uv run "${CLAUDE_PLUGIN_ROOT}/scripts/generate_trial_report.py" \
+  ".blindspots/user-trials/<persona-slug>/"
+```
+
+The script reads `journal.md`, `discovered-specs.md`, `reactions.md`, and
+`comparison.md` (whichever exist), embeds every PNG/JPG from `screenshots/`
+as base64 `data:` URIs, and renders a Mermaid `journey` diagram from the
+ordered reactions. Output: `.blindspots/user-trials/<persona-slug>/report.html`.
+
+The file is single-file shareable — just attach it. Mermaid loads from CDN at
+view time; offline viewers get a fallback note with the raw diagram source.
+
+If `uv` is not installed, skip this step and tell the user how to get it
+(`curl -LsSf https://astral.sh/uv/install.sh | sh`).
+
 ## Resolving Specs
 
 The `## Specs` section lists paths/globs, one per line with optional descriptions:
