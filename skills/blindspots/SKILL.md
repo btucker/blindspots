@@ -33,7 +33,7 @@ Config is checked in; session output is gitignored.
 | File | Mode | Purpose |
 |------|------|---------|
 | `.blindspots/dogfood-journals/<persona>.md` | dogfood | Per-persona session log |
-| `.blindspots/user-trials/<persona>/` | user-trial | Per-persona trial output (journal, discovered-specs, reactions, comparison) |
+| `.blindspots/user-trials/<persona>/` | user-trial | Per-persona trial output (journal, discovered-specs, reactions, comparison, report.html) |
 | `.blindspots/screenshots/` | all | Evidence |
 | `.blindspots/experiments/<name>/` | experiment | A/B test output |
 | `.blindspots/interviews/<name>.md` | interview | Interview transcripts |
