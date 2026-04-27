@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run --script
 # /// script
 # requires-python = ">=3.10"
-# dependencies = ["markdown>=3.5"]
+# dependencies = ["markdown>=3.5", "bleach>=6.1"]
 # ///
 """Generate a self-contained HTML report from a user-trial output directory.
 
@@ -25,7 +25,44 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import bleach
 import markdown
+
+
+# Sanitization allowlist for markdown-rendered HTML.
+# Trial source files (journal.md, reactions.md, etc.) are written by an agent
+# exploring third-party apps — the content can include arbitrary text quoted
+# from those pages. Any raw HTML (script tags, onerror handlers, javascript:
+# URIs) reaching the rendered report would execute when someone opens it.
+ALLOWED_TAGS = {
+    "p", "h1", "h2", "h3", "h4", "h5", "h6",
+    "ul", "ol", "li",
+    "strong", "em", "b", "i",
+    "code", "pre",
+    "blockquote",
+    "a", "img",
+    "table", "thead", "tbody", "tr", "th", "td",
+    "hr", "br",
+    "span", "div",
+}
+ALLOWED_ATTRS = {
+    "a": ["href", "title"],
+    "img": ["src", "alt", "title", "loading"],
+}
+# `data:` is required for inline base64 screenshots; without it bleach strips
+# every embedded image. Browsers don't execute JS in `data:image/*` URIs.
+ALLOWED_PROTOCOLS = ["http", "https", "data", "mailto"]
+
+
+def sanitize_rendered_html(rendered: str) -> str:
+    return bleach.clean(
+        rendered,
+        tags=ALLOWED_TAGS,
+        attributes=ALLOWED_ATTRS,
+        protocols=ALLOWED_PROTOCOLS,
+        strip=True,
+        strip_comments=True,
+    )
 
 
 REACTION_SCORES = {
@@ -38,12 +75,12 @@ REACTION_SCORES = {
 }
 
 REACTION_COLORS = {
-    "delight": "#16a34a",
-    "surprise": "#0891b2",
-    "indifference": "#737373",
-    "confusion": "#d97706",
-    "frustration": "#dc2626",
-    "anxiety": "#7c3aed",
+    "delight": "#15803d",
+    "surprise": "#0e7490",
+    "indifference": "#525252",
+    "confusion": "#b45309",
+    "frustration": "#b91c1c",
+    "anxiety": "#6d28d9",
 }
 
 
@@ -126,26 +163,83 @@ def parse_reactions(text: str) -> list[Reaction]:
     return reactions
 
 
-def sanitize_journey_label(text: str, max_len: int = 60) -> str:
-    """Mermaid `journey` parses `:` and `,` as separators. Strip them."""
-    cleaned = text.replace(":", "—").replace(",", ";").replace("\n", " ").strip()
-    cleaned = re.sub(r"\s+", " ", cleaned)
+def truncate_label(text: str, max_len: int = 80) -> str:
+    cleaned = re.sub(r"\s+", " ", text).strip()
     if len(cleaned) > max_len:
         cleaned = cleaned[: max_len - 1].rstrip() + "…"
     return cleaned
 
 
-def build_mermaid_journey(persona: str, reactions: list[Reaction]) -> str:
+def render_emotion_journey(persona: str, reactions: list[Reaction]) -> str:
+    """Build a custom CSS chart of emotional arc — colored by emotion, not score.
+
+    Replaces mermaid's `journey` diagram, which colored everything by score
+    and collapsed distinct emotions into the same emoji.
+    """
     if not reactions:
         return ""
-    lines = ["journey", f"    title {sanitize_journey_label(persona)}'s trial"]
-    lines.append("    section Session")
-    actor = sanitize_journey_label(persona, max_len=20) or "User"
-    for r in reactions:
-        label = sanitize_journey_label(r.what_happened or r.title) or "(unlabeled)"
+
+    n = len(reactions)
+    points: list[str] = []
+    dots: list[str] = []
+    labels: list[str] = []
+    for i, r in enumerate(reactions, start=1):
         score = REACTION_SCORES.get(r.reaction, 3)
-        lines.append(f"      {label}: {score}: {actor}")
-    return "\n".join(lines)
+        color = REACTION_COLORS.get(r.reaction, REACTION_COLORS["indifference"])
+        # Center of column i in [0, 100]; row in [0, 100] where 0=top (score 5)
+        x = (i - 0.5) / n * 100
+        y = (5 - score) / 4 * 100
+        points.append(f"{x:.2f},{y:.2f}")
+        tooltip = truncate_label(
+            f"{r.title or r.what_happened} — {r.reaction} ({r.what_happened})", 160
+        )
+        step_label = truncate_label(r.title or r.what_happened or r.reaction, 26)
+        dots.append(
+            f'<div class="step" style="--col:{i};--score:{score};--c:{color}" '
+            f'title="{html.escape(tooltip)}"><span class="dot"></span></div>'
+        )
+        labels.append(
+            f'<span class="num"><b>{i:02d}</b>'
+            f'<em>{html.escape(step_label)}</em></span>'
+        )
+
+    polyline = (
+        '<svg class="line" viewBox="0 0 100 100" preserveAspectRatio="none" '
+        'aria-hidden="true">'
+        f'<polyline points="{" ".join(points)}" />'
+        '</svg>'
+    )
+
+    axis = "".join(
+        f'<div data-score="{s}">{label}</div>'
+        for s, label in [(5, "5 · delight"), (4, "4 · positive"), (3, "3 · neutral"),
+                         (2, "2 · tension"), (1, "1 · alarm")]
+    )
+
+    legend_seen: list[str] = []
+    for r in reactions:
+        if r.reaction not in legend_seen:
+            legend_seen.append(r.reaction)
+    legend_html = "".join(
+        f'<span><i style="background:{REACTION_COLORS.get(e, "#888")}"></i>'
+        f'{html.escape(e)}</span>'
+        for e in legend_seen
+    )
+
+    return (
+        '<figure class="journey">'
+        '<header class="journey-head">'
+        f'<span class="title">{html.escape(persona)} — emotional arc</span>'
+        f'<span class="legend">{legend_html}</span>'
+        '</header>'
+        f'<div class="journey-grid" style="--steps:{n}">'
+        f'<div class="axis">{axis}</div>'
+        f'<div class="track">{polyline}{"".join(dots)}</div>'
+        '<div class="axis-spacer"></div>'
+        f'<div class="numbers">{"".join(labels)}</div>'
+        '</div>'
+        '</figure>'
+    )
 
 
 _IMG_TAG = re.compile(r'<img\b([^>]*)>', re.IGNORECASE)
@@ -202,9 +296,12 @@ def md_to_html(text: str, screenshots: dict[str, str]) -> str:
     body = markdown.markdown(
         text,
         extensions=["fenced_code", "tables", "sane_lists"],
-        output_format="html5",
+        output_format="html",
     )
-    return rewrite_image_refs(body, screenshots)
+    body = rewrite_image_refs(body, screenshots)
+    # Strip any raw HTML / event handlers / dangerous URI schemes that
+    # markdown preserved. Trial files are written from untrusted page content.
+    return sanitize_rendered_html(body)
 
 
 def collect_data(trial_dir: Path) -> TrialData:
@@ -271,167 +368,451 @@ HTML_TEMPLATE = """<!doctype html>
 <meta charset="utf-8">
 <title>{title}</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Manrope:wght@300..700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {{
-  --bg: #0b0d10;
-  --panel: #14181d;
-  --panel-2: #1b2027;
-  --text: #e7ecef;
-  --muted: #9aa4ad;
-  --accent: #7dd3fc;
-  --border: #232a32;
+  --paper: #fbfaf7;
+  --paper-2: #f4f0e6;
+  --surface: #ffffff;
+  --ink: #171717;
+  --ink-2: #2c2c2c;
+  --muted: #6b6357;
+  --hairline: #e8e2d2;
+  --rule: #cfc6b0;
+  --accent: #b8412e;
+  --accent-soft: #f3dcd4;
+  --shadow: 0 1px 0 rgba(23,23,23,.04), 0 4px 16px -8px rgba(23,23,23,.08);
+  --serif: "Fraunces", "Iowan Old Style", "Georgia", serif;
+  --sans: "Manrope", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --measure: 68ch;
 }}
 * {{ box-sizing: border-box; }}
 html, body {{ margin: 0; padding: 0; }}
+html {{ background: var(--paper); }}
 body {{
-  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.55;
-  font-size: 15px;
+  font-family: var(--sans);
+  background:
+    radial-gradient(1200px 600px at 20% -10%, #fdf6e8 0%, transparent 60%),
+    radial-gradient(1000px 500px at 100% 0%, #f7e7df 0%, transparent 55%),
+    var(--paper);
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.6;
+  font-feature-settings: "ss01", "ss02", "cv11";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }}
-.shell {{ max-width: 1100px; margin: 0 auto; padding: 32px 24px 80px; }}
-header.hero {{ padding: 24px 0 32px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }}
-header.hero .eyebrow {{ font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }}
-header.hero h1 {{ font-size: 32px; margin: 8px 0 4px; font-weight: 700; }}
-header.hero .sub {{ color: var(--muted); }}
-nav.toc {{ display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 0; }}
-nav.toc a {{
-  font-size: 13px; color: var(--muted); text-decoration: none;
-  padding: 6px 12px; border: 1px solid var(--border); border-radius: 999px;
-  background: var(--panel);
+::selection {{ background: var(--accent-soft); color: var(--ink); }}
+.report {{ max-width: 980px; margin: 0 auto; padding: 56px 32px 96px; }}
+
+.hero {{ position: relative; padding: 32px 0 56px; border-bottom: 1px solid var(--hairline); margin-bottom: 64px; }}
+.masthead {{
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted); padding-bottom: 24px; border-bottom: 1px solid var(--hairline); margin-bottom: 40px;
 }}
-nav.toc a:hover {{ color: var(--text); border-color: var(--accent); }}
-section {{ margin: 40px 0; }}
-section > h2 {{
-  font-size: 20px; margin: 0 0 16px;
-  display: flex; align-items: center; gap: 10px;
+.masthead .brand {{ display: flex; align-items: center; gap: 10px; }}
+.masthead .brand::before {{
+  content: ""; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
 }}
-section > h2::before {{
-  content: ""; width: 4px; height: 18px; background: var(--accent); border-radius: 2px;
+.eyebrow {{
+  font-family: var(--mono); font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 18px;
 }}
-.card {{
-  background: var(--panel); border: 1px solid var(--border);
-  border-radius: 10px; padding: 20px 24px;
+h1.display {{
+  font-family: var(--serif); font-variation-settings: "opsz" 144;
+  font-weight: 480; font-size: clamp(48px, 8vw, 96px);
+  line-height: .98; letter-spacing: -0.02em; margin: 0 0 24px; color: var(--ink);
 }}
-.card.markdown :is(h1,h2,h3,h4) {{ margin-top: 28px; margin-bottom: 8px; }}
-.card.markdown h1 {{ font-size: 22px; }}
-.card.markdown h2 {{ font-size: 18px; color: var(--accent); }}
-.card.markdown h3 {{ font-size: 16px; }}
-.card.markdown code {{
-  background: var(--panel-2); padding: 2px 6px; border-radius: 4px;
-  font-size: 13px;
+.lede {{
+  font-family: var(--serif); font-variation-settings: "opsz" 18;
+  font-weight: 350; font-style: italic; font-size: 22px; line-height: 1.4;
+  color: var(--muted); margin: 0 0 32px; max-width: 56ch;
 }}
-.card.markdown pre {{
-  background: var(--panel-2); padding: 14px 16px; border-radius: 8px;
-  overflow-x: auto; border: 1px solid var(--border);
-}}
-.card.markdown pre code {{ background: transparent; padding: 0; }}
-.card.markdown img {{ max-width: 100%; border-radius: 8px; border: 1px solid var(--border); margin: 8px 0; }}
-.card.markdown blockquote {{
-  border-left: 3px solid var(--accent); padding-left: 14px; color: var(--muted); margin: 8px 0;
-}}
-.card.markdown table {{ border-collapse: collapse; width: 100%; margin: 12px 0; }}
-.card.markdown th, .card.markdown td {{ border: 1px solid var(--border); padding: 6px 10px; text-align: left; }}
-.card.markdown ul, .card.markdown ol {{ padding-left: 22px; }}
-.empty {{ color: var(--muted); font-style: italic; }}
-.chips {{ display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 16px; }}
+
+.chips {{ display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 32px; }}
 .chip {{
-  font-size: 12px; padding: 4px 10px; border-radius: 999px;
-  border: 1px solid; text-transform: lowercase; font-weight: 500;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .04em;
+  padding: 5px 10px; border-radius: 999px; border: 1px solid;
+  text-transform: lowercase; font-weight: 500; white-space: nowrap;
 }}
+
+nav.toc {{ display: flex; flex-wrap: wrap; gap: 0; padding-top: 12px; border-top: 1px solid var(--hairline); }}
+nav.toc a {{
+  font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted); text-decoration: none; padding: 12px 16px 12px 0; margin-right: 8px;
+  position: relative; transition: color .15s ease;
+}}
+nav.toc a:hover {{ color: var(--accent); }}
+nav.toc a:hover::after {{
+  content: ""; position: absolute; left: 0; bottom: 4px;
+  width: calc(100% - 16px); height: 1px; background: var(--accent);
+}}
+
+section {{ margin: 80px 0; scroll-margin-top: 32px; }}
+.section-head {{
+  display: grid; grid-template-columns: 80px 1fr; gap: 24px; align-items: baseline;
+  margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid var(--hairline);
+}}
+.section-head .numeral {{
+  font-family: var(--serif); font-variation-settings: "opsz" 144;
+  font-weight: 300; font-style: italic; font-size: 36px; line-height: 1;
+  color: var(--accent); letter-spacing: -.02em;
+}}
+.section-head .label {{
+  font-family: var(--mono); font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 6px;
+}}
+.section-head h2 {{
+  font-family: var(--serif); font-variation-settings: "opsz" 60;
+  font-weight: 420; font-size: 32px; line-height: 1.1; letter-spacing: -.015em;
+  margin: 0; color: var(--ink);
+}}
+
+.card {{
+  background: var(--surface); border: 1px solid var(--hairline); border-radius: 6px;
+  padding: 32px 40px; box-shadow: var(--shadow);
+}}
+.prose {{ max-width: var(--measure); font-size: 16px; line-height: 1.7; color: var(--ink-2); }}
+.prose > :first-child {{ margin-top: 0; }}
+.prose > :last-child {{ margin-bottom: 0; }}
+.prose h1, .prose h2, .prose h3, .prose h4 {{
+  font-family: var(--serif); color: var(--ink); letter-spacing: -.01em;
+  margin: 32px 0 12px; font-weight: 480; line-height: 1.25;
+}}
+.prose h1 {{ font-size: 28px; font-variation-settings: "opsz" 80; }}
+.prose h2 {{ font-size: 22px; font-variation-settings: "opsz" 48; }}
+.prose h3 {{
+  font-size: 16px; font-family: var(--mono); text-transform: uppercase;
+  letter-spacing: .14em; color: var(--accent); font-weight: 500; margin-top: 36px;
+}}
+.prose h4 {{ font-size: 16px; }}
+.prose p {{ margin: 0 0 16px; }}
+.prose strong {{ color: var(--ink); font-weight: 600; }}
+.prose em {{ font-style: italic; color: var(--ink); }}
+.prose a {{
+  color: var(--accent); text-decoration: none;
+  border-bottom: 1px solid var(--accent-soft); transition: border-color .15s ease;
+}}
+.prose a:hover {{ border-bottom-color: var(--accent); }}
+.prose ul, .prose ol {{ margin: 12px 0 20px; padding-left: 24px; }}
+.prose li {{ margin: 4px 0; }}
+.prose ul li::marker {{ color: var(--accent); }}
+.prose blockquote {{
+  margin: 20px 0; padding: 4px 0 4px 20px;
+  border-left: 2px solid var(--accent);
+  font-family: var(--serif); font-style: italic; color: var(--muted); font-size: 18px;
+}}
+.prose code {{
+  font-family: var(--mono); font-size: 13px;
+  background: var(--paper-2); padding: 1px 6px; border-radius: 3px; color: var(--ink);
+}}
+.prose pre {{
+  font-family: var(--mono); background: #1a1a1a; color: #f4f0e6;
+  padding: 18px 22px; border-radius: 6px; overflow-x: auto;
+  font-size: 13px; line-height: 1.6; margin: 20px 0;
+}}
+.prose pre code {{ background: transparent; color: inherit; padding: 0; }}
+.prose img {{
+  display: block; max-width: 100%; height: auto;
+  border-radius: 4px; border: 1px solid var(--hairline);
+  margin: 16px 0; box-shadow: var(--shadow);
+}}
+.prose table {{
+  border-collapse: collapse; width: 100%; font-size: 14px;
+  margin: 20px 0; font-variant-numeric: tabular-nums;
+}}
+.prose th, .prose td {{
+  border-bottom: 1px solid var(--hairline); padding: 10px 14px;
+  text-align: left; vertical-align: top;
+}}
+.prose th {{
+  font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--rule);
+}}
+.prose hr {{ border: 0; border-top: 1px solid var(--hairline); margin: 32px 0; }}
+.empty {{ color: var(--muted); font-style: italic; }}
+
+figure.journey {{
+  margin: 0; background: var(--surface); border: 1px solid var(--hairline);
+  border-radius: 6px; box-shadow: var(--shadow); overflow: hidden;
+}}
+.journey-head {{
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 16px;
+  padding: 14px 24px; border-bottom: 1px solid var(--hairline);
+  background: var(--paper);
+}}
+.journey-head .title {{
+  font-family: var(--serif); font-style: italic; font-size: 15px;
+  color: var(--ink-2);
+}}
+.journey-head .legend {{
+  display: flex; flex-wrap: wrap; gap: 14px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted);
+}}
+.journey-head .legend span {{ display: inline-flex; align-items: center; gap: 6px; }}
+.journey-head .legend i {{
+  width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+}}
+.journey-grid {{
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  grid-template-rows: auto auto;
+  padding: 20px 24px 24px;
+  gap: 6px 16px;
+  align-items: stretch;
+}}
+.journey-grid .axis {{
+  display: grid; grid-template-rows: repeat(5, 1fr);
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--muted);
+  text-align: right; padding-right: 14px;
+  border-right: 1px solid var(--hairline);
+}}
+.journey-grid .axis > div {{
+  display: flex; align-items: center; justify-content: flex-end;
+}}
+.journey-grid .track {{
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--steps), 1fr);
+  grid-template-rows: repeat(5, 1fr);
+  height: 180px;
+  background-image:
+    linear-gradient(to bottom, var(--hairline) 0 1px, transparent 1px),
+    linear-gradient(to bottom, transparent calc(20% - 1px), var(--hairline) calc(20% - 1px) 20%);
+  background-position: 0 0, 0 0;
+  background-size: 100% 100%, 100% 100%;
+}}
+.journey-grid .track > svg.line {{
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  fill: none;
+  stroke: var(--rule);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+  vector-effect: non-scaling-stroke;
+}}
+.journey-grid .step {{
+  grid-column: var(--col); grid-row: calc(6 - var(--score));
+  align-self: center; justify-self: center;
+  position: relative; z-index: 2;
+}}
+.journey-grid .step .dot {{
+  display: block;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--c) 16%, transparent);
+}}
+.journey-grid .step:hover .dot {{
+  transform: scale(1.18);
+  box-shadow: 0 0 0 6px color-mix(in oklab, var(--c) 22%, transparent);
+}}
+.journey-grid .step .dot {{ transition: transform .15s ease, box-shadow .15s ease; }}
+.journey-grid .axis-spacer {{ }}
+.journey-grid .numbers {{
+  display: grid;
+  grid-template-columns: repeat(var(--steps), 1fr);
+  font-family: var(--mono);
+  border-top: 1px solid var(--hairline);
+  padding-top: 10px;
+  min-height: 150px;
+  position: relative;
+}}
+.journey-grid .numbers .num {{
+  position: relative;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}}
+.journey-grid .numbers .num::before {{
+  content: "";
+  position: absolute;
+  top: -10px; left: 50%;
+  width: 1px; height: 6px;
+  background: var(--rule);
+}}
+.journey-grid .numbers .num b {{
+  display: block;
+  font-weight: 500;
+  font-size: 11px;
+  color: var(--ink-2);
+  letter-spacing: .04em;
+  margin-bottom: 6px;
+}}
+.journey-grid .numbers .num em {{
+  position: absolute;
+  top: 28px; left: 50%;
+  display: inline-block;
+  font-style: normal;
+  font-size: 11px;
+  font-family: var(--serif);
+  font-variation-settings: "opsz" 14;
+  color: var(--ink-2);
+  letter-spacing: 0;
+  white-space: nowrap;
+  transform: rotate(-45deg);
+  transform-origin: top left;
+  padding-left: 2px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}}
+.journey-grid .step:hover ~ .numbers em,
+.journey-grid:hover .numbers em {{ color: var(--ink); }}
+
 .strip {{
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 12px; margin-top: 16px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px; margin-top: 8px;
 }}
-.strip figure {{ margin: 0; background: var(--panel-2); border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }}
-.strip img {{ width: 100%; display: block; aspect-ratio: 16/10; object-fit: cover; }}
+.strip figure {{
+  margin: 0; background: var(--surface); border: 1px solid var(--hairline);
+  border-radius: 6px; overflow: hidden; box-shadow: var(--shadow);
+  transition: transform .2s ease, box-shadow .2s ease;
+}}
+.strip figure:hover {{
+  transform: translateY(-2px);
+  box-shadow: 0 1px 0 rgba(23,23,23,.04), 0 12px 28px -10px rgba(23,23,23,.16);
+}}
+.strip img {{ width: 100%; display: block; aspect-ratio: 16/10; object-fit: cover; background: var(--paper-2); }}
 .strip figcaption {{
-  font-size: 11px; color: var(--muted); padding: 6px 8px;
-  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .04em;
+  color: var(--muted); padding: 10px 14px; border-top: 1px solid var(--hairline);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }}
-.mermaid-wrap {{
-  background: white; padding: 24px; border-radius: 10px;
-  border: 1px solid var(--border); overflow-x: auto;
+
+details.journal {{
+  background: var(--surface); border: 1px solid var(--hairline);
+  border-radius: 6px; box-shadow: var(--shadow); overflow: hidden;
 }}
-.mermaid-fallback {{
-  color: var(--muted); font-size: 13px; padding: 12px 0 0;
-  border-top: 1px solid var(--border); margin-top: 16px;
+details.journal > summary {{
+  cursor: pointer; list-style: none;
+  padding: 18px 24px;
+  font-family: var(--mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted); display: flex; align-items: center; gap: 12px;
+  user-select: none; transition: color .15s ease;
 }}
-details summary {{ cursor: pointer; color: var(--accent); user-select: none; padding: 4px 0; }}
-footer {{ margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; }}
+details.journal > summary::-webkit-details-marker {{ display: none; }}
+details.journal > summary::before {{
+  content: "+"; font-family: var(--serif); font-size: 24px; color: var(--accent);
+  line-height: 1; width: 16px; transition: transform .2s ease;
+}}
+details.journal[open] > summary::before {{ content: "−"; }}
+details.journal > summary:hover {{ color: var(--ink); }}
+details.journal .body {{ padding: 8px 40px 32px; border-top: 1px solid var(--hairline); }}
+
+footer {{
+  margin-top: 96px; padding-top: 24px; border-top: 1px solid var(--hairline);
+  font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+}}
+
+@media (max-width: 720px) {{
+  .report {{ padding: 32px 20px 64px; }}
+  h1.display {{ font-size: clamp(40px, 12vw, 64px); }}
+  .lede {{ font-size: 18px; }}
+  .section-head {{ grid-template-columns: 56px 1fr; gap: 16px; }}
+  .section-head .numeral {{ font-size: 28px; }}
+  .section-head h2 {{ font-size: 24px; }}
+  .card {{ padding: 24px 20px; }}
+  details.journal .body {{ padding: 8px 20px 24px; }}
+}}
+
 @media print {{
-  body {{ background: white; color: black; }}
-  .card, .mermaid-wrap, nav.toc a {{ background: white; border-color: #ccc; color: black; }}
+  body {{ background: white; font-size: 11pt; }}
+  .report {{ max-width: none; padding: 0; }}
+  nav.toc {{ display: none !important; }}
+  .card, figure.journey, details.journal, .strip figure {{
+    box-shadow: none; border-color: #ddd;
+    page-break-inside: avoid; break-inside: avoid;
+  }}
+  details.journal {{ page-break-inside: auto; }}
+  details.journal[open] > summary {{ display: none; }}
+  details.journal:not([open]) > summary::after {{ content: " — collapsed in print preview"; }}
+  details.journal .body {{ border-top: 0; padding-top: 0; }}
+  section {{ margin: 32px 0; }}
+  h1.display {{ font-size: 48pt; }}
+  a {{ color: black; }}
+  .prose a {{ border-bottom-color: #999; }}
+  .strip {{ grid-template-columns: repeat(2, 1fr); }}
 }}
 </style>
 </head>
 <body>
-<div class="shell">
+<main class="report">
   <header class="hero">
-    <div class="eyebrow">Blindspots · User Trial</div>
-    <h1>{persona_name}</h1>
-    <div class="sub">{sub}</div>
+    <div class="masthead">
+      <div class="brand">Blindspots — User Trial</div>
+      <div class="meta">{sub}</div>
+    </div>
+    <div class="eyebrow">Field notes</div>
+    <h1 class="display">{persona_name}</h1>
+    <p class="lede">A persona's first encounter with the product, observed and recorded.</p>
     {chips}
-    <nav class="toc">
-      {toc_links}
-    </nav>
+    <nav class="toc">{toc_links}</nav>
   </header>
 
   {journey_section}
 
-  <section id="discovered-specs">
-    <h2>Discovered Specs</h2>
-    <div class="card markdown">{specs_html}</div>
+  <section id="reactions">
+    <header class="section-head">
+      <div class="numeral">§I</div>
+      <div>
+        <div class="label">Chapter one</div>
+        <h2>Reactions</h2>
+      </div>
+    </header>
+    <div class="card prose">{reactions_html}</div>
   </section>
 
-  <section id="reactions">
-    <h2>Reactions</h2>
-    <div class="card markdown">{reactions_html}</div>
+  <section id="discovered-specs">
+    <header class="section-head">
+      <div class="numeral">§II</div>
+      <div>
+        <div class="label">Chapter two</div>
+        <h2>Discovered specs</h2>
+      </div>
+    </header>
+    <div class="card prose">{specs_html}</div>
   </section>
 
   {comparison_section}
 
   <section id="journal">
-    <h2>Exploration Journal</h2>
-    <details>
-      <summary>Show full journal</summary>
-      <div class="card markdown" style="margin-top:12px">{journal_html}</div>
+    <header class="section-head">
+      <div class="numeral">§IV</div>
+      <div>
+        <div class="label">Appendix</div>
+        <h2>Exploration journal</h2>
+      </div>
+    </header>
+    <details class="journal">
+      <summary>Open the full journal</summary>
+      <div class="body prose">{journal_html}</div>
     </details>
   </section>
 
   {screenshots_section}
 
   <footer>
-    Generated by blindspots · self-contained HTML, screenshots embedded as data URIs.
+    <span>Blindspots</span>
+    <span>Self-contained · screenshots embedded · {sub}</span>
   </footer>
-</div>
+</main>
 
-{mermaid_script}
 </body>
 </html>
 """
 
 
-MERMAID_SCRIPT = """<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-<script>
-  if (window.mermaid) {
-    mermaid.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose' });
-  } else {
-    document.querySelectorAll('.mermaid').forEach(function (el) {
-      el.style.display = 'none';
-    });
-    var note = document.querySelector('.mermaid-fallback');
-    if (note) note.style.display = 'block';
-  }
-</script>
-"""
-
-
 def render_html(data: TrialData) -> str:
-    journey_src = build_mermaid_journey(data.persona_name, data.reactions)
-
     sub_bits = []
     if data.reactions:
         sub_bits.append(f"{len(data.reactions)} reactions")
@@ -441,25 +822,27 @@ def render_html(data: TrialData) -> str:
 
     toc = [
         ("#journey", "Journey"),
-        ("#discovered-specs", "Discovered Specs"),
         ("#reactions", "Reactions"),
+        ("#discovered-specs", "Discovered Specs"),
         ("#comparison", "Comparison"),
         ("#journal", "Journal"),
         ("#screenshots", "Screenshots"),
     ]
     toc_links = "".join(f'<a href="{href}">{label}</a>' for href, label in toc)
 
-    if journey_src:
+    journey_chart = render_emotion_journey(data.persona_name, data.reactions)
+    if journey_chart:
         journey_section = (
             '<section id="journey">'
-            "<h2>User Journey</h2>"
-            '<div class="mermaid-wrap">'
-            f'<pre class="mermaid">{html.escape(journey_src)}</pre>'
-            '<div class="mermaid-fallback" style="display:none">'
-            "Mermaid CDN unavailable. Open this file with internet access to see the journey diagram, "
-            "or paste the source below into <a href='https://mermaid.live'>mermaid.live</a>:"
-            f'<pre style="white-space:pre-wrap">{html.escape(journey_src)}</pre>'
-            "</div></div></section>"
+            '<header class="section-head">'
+            '<div class="numeral">§0</div>'
+            '<div>'
+            '<div class="label">Prologue</div>'
+            '<h2>User journey</h2>'
+            '</div>'
+            '</header>'
+            f'{journey_chart}'
+            '</section>'
         )
     else:
         journey_section = ""
@@ -467,8 +850,14 @@ def render_html(data: TrialData) -> str:
     if data.comparison_md.strip():
         comparison_section = (
             '<section id="comparison">'
-            "<h2>Comparison vs Actual Specs</h2>"
-            f'<div class="card markdown">{md_to_html(data.comparison_md, data.screenshots)}</div>'
+            '<header class="section-head">'
+            '<div class="numeral">§III</div>'
+            '<div>'
+            '<div class="label">Chapter three</div>'
+            '<h2>Comparison vs actual specs</h2>'
+            '</div>'
+            '</header>'
+            f'<div class="card prose">{md_to_html(data.comparison_md, data.screenshots)}</div>'
             "</section>"
         )
     else:
@@ -477,7 +866,13 @@ def render_html(data: TrialData) -> str:
     if data.screenshots:
         screenshots_section = (
             '<section id="screenshots">'
-            "<h2>Screenshots</h2>"
+            '<header class="section-head">'
+            '<div class="numeral">§V</div>'
+            '<div>'
+            '<div class="label">Plates</div>'
+            '<h2>Screenshots</h2>'
+            '</div>'
+            '</header>'
             f"{render_screenshot_strip(data.screenshots)}"
             "</section>"
         )
@@ -496,7 +891,6 @@ def render_html(data: TrialData) -> str:
         comparison_section=comparison_section,
         journal_html=md_to_html(data.journal_md, data.screenshots),
         screenshots_section=screenshots_section,
-        mermaid_script=MERMAID_SCRIPT,
     )
 
 
