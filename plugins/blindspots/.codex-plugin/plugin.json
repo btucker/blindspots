@@ -31,11 +31,7 @@
       "Browser"
     ],
     "websiteURL": "https://github.com/btucker/blindspots",
-    "defaultPrompt": [
-      "Run a blindspots dogfood pass on this product.",
-      "Set up Blindspots personas for this project.",
-      "Interview a persona about this product experience."
-    ],
+    "defaultPrompt": "Run a blindspots dogfood pass on this product.",
     "brandColor": "#0F766E"
   }
 }
