@@ -1,0 +1,37 @@
+{
+  "name": "blindspots",
+  "version": "2.3.0",
+  "description": "Find your product's blind spots by dogfooding against specs, running user trials, comparing variants, and interviewing synthetic personas.",
+  "author": {
+    "name": "Ben Tucker",
+    "url": "https://github.com/btucker"
+  },
+  "homepage": "https://github.com/btucker/blindspots",
+  "repository": "https://github.com/btucker/blindspots",
+  "license": "MIT",
+  "keywords": [
+    "testing",
+    "dogfooding",
+    "user-trials",
+    "personas",
+    "accessibility",
+    "ab-testing",
+    "synthetic-users"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Blindspots",
+    "shortDescription": "Dogfood products with synthetic user personas.",
+    "longDescription": "Blindspots helps test products through synthetic personas: dogfood against specs, run user trials without insider knowledge, compare variants, and interview personas about their experience.",
+    "developerName": "Ben Tucker",
+    "category": "Testing",
+    "capabilities": [
+      "Interactive",
+      "Write",
+      "Browser"
+    ],
+    "websiteURL": "https://github.com/btucker/blindspots",
+    "defaultPrompt": "Run a blindspots dogfood pass on this product.",
+    "brandColor": "#0F766E"
+  }
+}
