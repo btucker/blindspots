@@ -1,7 +1,7 @@
 {
   "name": "blindspots",
   "description": "Find your product's blind spots — dogfood against specs, run user trials, A/B experiment across variants, and interview synthetic personas",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "homepage": "https://github.com/btucker/blindspots",
   "repository": "https://github.com/btucker/blindspots",
   "license": "MIT",

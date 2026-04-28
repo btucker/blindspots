@@ -1,6 +1,6 @@
 {
   "name": "blindspots",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Find your product's blind spots by dogfooding against specs, running user trials, comparing variants, and interviewing synthetic personas.",
   "author": {
     "name": "Ben Tucker",
