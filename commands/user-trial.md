@@ -129,11 +129,29 @@ uv run "${CLAUDE_PLUGIN_ROOT}/scripts/generate_trial_report.py" \
 
 The script reads `journal.md`, `discovered-specs.md`, `reactions.md`, and
 `comparison.md` (whichever exist), embeds every PNG/JPG from `screenshots/`
-as base64 `data:` URIs, and renders a Mermaid `journey` diagram from the
-ordered reactions. Output: `.blindspots/user-trials/<persona-slug>/report.html`.
+as base64 `data:` URIs, renders the persona journey as vertical action cards,
+and folds reference artifacts below the comparison. Output:
+`.blindspots/user-trials/<persona-slug>/report.html`.
 
-The file is single-file shareable — just attach it. Mermaid loads from CDN at
-view time; offline viewers get a fallback note with the raw diagram source.
+The file is single-file shareable — just attach it.
+
+After generating `report.html`, inspect the rendered report before presenting it.
+
+Treat the script output as a first draft. Make a curation pass so the final
+report tells the story of the persona's experience as clearly as possible.
+
+Use judgement to:
+- strengthen the narrative flow from first encounter to final impression
+- tighten headings, captions, takeaways, and section emphasis
+- improve evidence placement so screenshots or terminal output support the
+  moment they belong to
+- fix awkward tables, spacing, or layout issues that interrupt the story
+- preserve uncertainty and evidence; do not invent findings or make the persona
+  sound more certain than the trial supports
+
+Prefer editing source artifacts or the generator when the improvement should
+apply to future reports. Directly polish `report.html` when that is the fastest
+way to make this specific report stronger.
 
 If `uv` is not installed, skip this step and tell the user how to get it
 (`curl -LsSf https://astral.sh/uv/install.sh | sh`).
