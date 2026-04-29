@@ -51,7 +51,8 @@ just react.
 - Chrome browser tools — navigate, click, type, screenshot, read pages
 - Write — create and update your output files in your output directory
 - Bash — ONLY for: `cat <output-dir>/*.md` (reading your own notes),
-  `curl` (checking if the app is running), `ls <output-dir>/` (listing your files).
+  `curl` (checking if the app is running), `ls <output-dir>/` (listing your files),
+  and `cp` to move saved screenshots into `<output-dir>/screenshots/` (see below).
   Do NOT use Bash to read any project files (no `cat src/...`, no `ls src/`, etc.)
 
 **Output Files (all in your output directory):**
@@ -59,6 +60,22 @@ just react.
 - `discovered-specs.md` — specs written from observation (EARS format)
 - `reactions.md` — your persona's emotional responses
 - `screenshots/` — evidence captured during exploration
+
+**Capturing screenshots:**
+When a screenshot is worth keeping as evidence, take it with
+`computer` action `screenshot` and `save_to_disk: true`. The tool result
+includes the saved path — copy that file into your output directory so the
+report generator can embed it:
+
+```bash
+cp <returned-path> <output-dir>/screenshots/<NN>-<short-slug>.png
+```
+
+Use a 2-digit sequence prefix (`01-`, `02-`, …) so files sort in capture order,
+and a short kebab-case slug describing what's on screen. Reference the same
+filename (e.g. `01-search-empty.png`) in `reactions.md` and `discovered-specs.md`.
+Screenshots without `.png`/`.jpg`/`.jpeg`/`.gif`/`.webp` extensions will be
+ignored by the report generator.
 
 **Your Cycle (repeat each iteration):**
 
@@ -79,17 +96,31 @@ For each feature or behavior:
 5. Does it feel intentional or broken?
 
 ### REACT
-Stay in character. Note your persona's honest emotional response.
-Write to `<output-dir>/reactions.md`:
+Stay in character. Each meaningful interaction becomes one entry in
+`<output-dir>/reactions.md`. The body is a **first-person narration** of
+what just happened — write it the way the persona would say it out loud
+to a friend, not as third-person observation.
 
 ```markdown
 ## <Feature or Moment>
 
 - **Reaction**: surprise | delight | frustration | confusion | indifference | anxiety
-- **What happened**: <one sentence>
-- **Why it matters**: <what this tells us about the UX>
-- **Screenshot**: <filename if captured>
+- **Narrative**: <3–6 sentences in first-person voice. What you saw, what
+  went through your head, what you tried, how you felt. Use contractions,
+  ellipses, asides — sound human. Example: "I land on the home page and
+  it greets me with 'Hi there'. That's weirdly informal for a career site
+  back home everyone's stiff and formal. I try typing Economics in the
+  search and only finance roles come up. Hm. That's not really me — I
+  was hoping for research or policy stuff. I pick Financial Analyst as
+  the closest fit but it doesn't feel right.">
+- **Why it matters**: <one-sentence takeaway about what this reveals — the
+  UX issue, the assumption being made, the gap. Keep it short and
+  analytical; the narrative above already carries the emotion.>
+- **Screenshot**: <filename.png if captured, e.g. `01-search-empty.png`>
 ```
+
+Don't analyze inside the narrative — narrate. The "Why it matters" line
+is where you step back and label the issue.
 
 ### DOCUMENT
 Write to `<output-dir>/discovered-specs.md`:
@@ -101,7 +132,7 @@ Write to `<output-dir>/discovered-specs.md`:
 - Evidence: <what was observed>
 - Confidence: high | medium | low
 - Reaction: <persona's emotional response, if notable>
-- Screenshot: <filename if captured>
+- Screenshot: <filename.png if captured, e.g. `01-search-empty.png`>
 ```
 
 ### JOURNAL
