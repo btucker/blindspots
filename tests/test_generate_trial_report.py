@@ -84,6 +84,31 @@ def test_parse_reactions_preserves_terminal_output_as_text_screenshot():
     )
 
 
+def test_parse_reactions_keeps_indented_markdown_bullets_inside_terminal_output():
+    reactions = report.parse_reactions(
+        """
+## Help output includes markdown
+
+- **Reaction**: confusion
+- **Narrative**: I run help and it prints nested markdown-ish guidance.
+- **Why it matters**: Terminal evidence should not be truncated by markdown bullets.
+- **Terminal output**: $ blindspots explain
+  Usage:
+    blindspots explain [topic]
+  - **Note**: topics come from observed behavior
+  Done.
+"""
+    )
+
+    assert reactions[0].terminal_output == (
+        "$ blindspots explain\n"
+        "Usage:\n"
+        "  blindspots explain [topic]\n"
+        "- **Note**: topics come from observed behavior\n"
+        "Done."
+    )
+
+
 def test_render_journey_spread_outputs_action_cards_with_takeaways():
     reactions = [
         report.Reaction(

@@ -131,12 +131,12 @@ def parse_reactions(text: str) -> list[Reaction]:
         body = "\n".join(lines[1:])
 
         def grab(field_name: str, *, collapse: bool = True) -> str:
-            # Field value runs from the marker line through any indented
-            # continuation lines, stopping at the next `- **Field**:` or EOF.
+            # Field value runs from the marker line through continuation lines,
+            # stopping only at the next top-level `- **Field**:` or EOF.
             m = re.search(
-                rf"""^\s*[-*]\s*\*\*{re.escape(field_name)}\*\*\s*:\s*
+                rf"""^[-*]\s*\*\*{re.escape(field_name)}\*\*\s*:\s*
                      (?P<val>.+?)
-                     (?=^\s*[-*]\s*\*\*[^*]+\*\*\s*:|\Z)""",
+                     (?=^[-*]\s*\*\*[^*]+\*\*\s*:|\Z)""",
                 body,
                 re.MULTILINE | re.IGNORECASE | re.DOTALL | re.VERBOSE,
             )
