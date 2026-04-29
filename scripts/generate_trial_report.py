@@ -65,22 +65,22 @@ def sanitize_rendered_html(rendered: str) -> str:
     )
 
 
-REACTION_SCORES = {
-    "delight": 5,
-    "surprise": 4,
-    "indifference": 3,
-    "confusion": 2,
-    "frustration": 1,
-    "anxiety": 1,
-}
+REACTION_LANES = [
+    "delight",
+    "surprise",
+    "indifference",
+    "confusion",
+    "anxiety",
+    "frustration",
+]
 
 REACTION_COLORS = {
     "delight": "#15803d",
     "surprise": "#0e7490",
     "indifference": "#525252",
     "confusion": "#b45309",
-    "frustration": "#b91c1c",
     "anxiety": "#6d28d9",
+    "frustration": "#b91c1c",
 }
 
 
@@ -88,9 +88,10 @@ REACTION_COLORS = {
 class Reaction:
     title: str
     reaction: str
-    what_happened: str
+    narrative: str  # first-person paragraph; legacy data may have used "What happened"
     why_matters: str = ""
     screenshot: str | None = None
+    terminal_output: str = ""
 
 
 @dataclass
@@ -129,17 +130,30 @@ def parse_reactions(text: str) -> list[Reaction]:
         title = lines[0].strip() if lines else ""
         body = "\n".join(lines[1:])
 
-        def grab(field_name: str) -> str:
+        def grab(field_name: str, *, collapse: bool = True) -> str:
+            # Field value runs from the marker line through continuation lines,
+            # stopping only at the next top-level `- **Field**:` or EOF.
             m = re.search(
-                rf"^\s*[-*]\s*\*\*{re.escape(field_name)}\*\*\s*:\s*(.+)$",
+                rf"""^[-*]\s*\*\*{re.escape(field_name)}\*\*\s*:\s*
+                     (?P<val>.+?)
+                     (?=^[-*]\s*\*\*[^*]+\*\*\s*:|\Z)""",
                 body,
-                re.MULTILINE | re.IGNORECASE,
+                re.MULTILINE | re.IGNORECASE | re.DOTALL | re.VERBOSE,
             )
-            return m.group(1).strip() if m else ""
+            if not m:
+                return ""
+            val = m.group("val").strip()
+            if collapse:
+                # Collapse the multi-line indented continuation into one paragraph.
+                return re.sub(r"\s+", " ", val).strip()
+            return "\n".join(
+                line[2:] if line.startswith("  ") else line
+                for line in val.splitlines()
+            ).strip()
 
         reaction_word = grab("Reaction").lower()
         # Take the first recognized word if the line is a list of options.
-        for word in REACTION_SCORES:
+        for word in REACTION_LANES:
             if word in reaction_word:
                 reaction_word = word
                 break
@@ -155,9 +169,10 @@ def parse_reactions(text: str) -> list[Reaction]:
             Reaction(
                 title=title,
                 reaction=reaction_word,
-                what_happened=grab("What happened"),
+                narrative=grab("Narrative") or grab("What happened"),
                 why_matters=grab("Why it matters"),
                 screenshot=screenshot,
+                terminal_output=grab("Terminal output", collapse=False),
             )
         )
     return reactions
@@ -170,76 +185,63 @@ def truncate_label(text: str, max_len: int = 80) -> str:
     return cleaned
 
 
-def render_emotion_journey(persona: str, reactions: list[Reaction]) -> str:
-    """Build a custom CSS chart of emotional arc — colored by emotion, not score.
+def render_action_card(i: int, r: Reaction, screenshots: dict[str, str]) -> str:
+    """One step in the journey — heading, persona's first-person narrative,
+    optional takeaway summary, optional screenshot."""
+    color = REACTION_COLORS.get(r.reaction, REACTION_COLORS["indifference"])
+    heading = r.title or r.reaction.title()
 
-    Replaces mermaid's `journey` diagram, which colored everything by score
-    and collapsed distinct emotions into the same emoji.
-    """
-    if not reactions:
-        return ""
-
-    n = len(reactions)
-    points: list[str] = []
-    dots: list[str] = []
-    labels: list[str] = []
-    for i, r in enumerate(reactions, start=1):
-        score = REACTION_SCORES.get(r.reaction, 3)
-        color = REACTION_COLORS.get(r.reaction, REACTION_COLORS["indifference"])
-        # Center of column i in [0, 100]; row in [0, 100] where 0=top (score 5)
-        x = (i - 0.5) / n * 100
-        y = (5 - score) / 4 * 100
-        points.append(f"{x:.2f},{y:.2f}")
-        tooltip = truncate_label(
-            f"{r.title or r.what_happened} — {r.reaction} ({r.what_happened})", 160
-        )
-        step_label = truncate_label(r.title or r.what_happened or r.reaction, 26)
-        dots.append(
-            f'<div class="step" style="--col:{i};--score:{score};--c:{color}" '
-            f'title="{html.escape(tooltip)}"><span class="dot"></span></div>'
-        )
-        labels.append(
-            f'<span class="num"><b>{i:02d}</b>'
-            f'<em>{html.escape(step_label)}</em></span>'
+    img_html = ""
+    if r.screenshot and r.screenshot in screenshots:
+        img_html = (
+            f'<img src="{screenshots[r.screenshot]}" '
+            f'alt="{html.escape(r.screenshot)}" loading="lazy">'
         )
 
-    polyline = (
-        '<svg class="line" viewBox="0 0 100 100" preserveAspectRatio="none" '
-        'aria-hidden="true">'
-        f'<polyline points="{" ".join(points)}" />'
-        '</svg>'
+    narrative_html = (
+        f'<p class="narrative">{html.escape(r.narrative)}</p>' if r.narrative else ""
     )
-
-    axis = "".join(
-        f'<div data-score="{s}">{label}</div>'
-        for s, label in [(5, "5 · delight"), (4, "4 · positive"), (3, "3 · neutral"),
-                         (2, "2 · tension"), (1, "1 · alarm")]
+    terminal_html = (
+        f'<pre class="terminal-output"><code>{html.escape(r.terminal_output)}</code></pre>'
+        if r.terminal_output else ""
     )
-
-    legend_seen: list[str] = []
-    for r in reactions:
-        if r.reaction not in legend_seen:
-            legend_seen.append(r.reaction)
-    legend_html = "".join(
-        f'<span><i style="background:{REACTION_COLORS.get(e, "#888")}"></i>'
-        f'{html.escape(e)}</span>'
-        for e in legend_seen
+    takeaway_html = (
+        f'<aside class="takeaway"><span class="takeaway-label">Takeaway</span>'
+        f'<p>{html.escape(r.why_matters)}</p></aside>'
+        if r.why_matters else ""
     )
 
     return (
-        '<figure class="journey">'
-        '<header class="journey-head">'
-        f'<span class="title">{html.escape(persona)} — emotional arc</span>'
-        f'<span class="legend">{legend_html}</span>'
-        '</header>'
-        f'<div class="journey-grid" style="--steps:{n}">'
-        f'<div class="axis">{axis}</div>'
-        f'<div class="track">{polyline}{"".join(dots)}</div>'
-        '<div class="axis-spacer"></div>'
-        f'<div class="numbers">{"".join(labels)}</div>'
-        '</div>'
-        '</figure>'
+        f'<article class="action-card" style="--c:{color}">'
+        f'<header class="action-head">'
+        f'<span class="step-num">{i:02d}</span>'
+        f'<span class="meta">{html.escape(r.reaction)}</span>'
+        f'</header>'
+        f'<h3 class="heading">{html.escape(heading)}</h3>'
+        f'{narrative_html}'
+        f'{img_html}'
+        f'{terminal_html}'
+        f'{takeaway_html}'
+        f'</article>'
     )
+
+
+def render_journey_spread(
+    reactions: list[Reaction], screenshots: dict[str, str]
+) -> str:
+    """Single-column journey: each step is a card showing the persona's
+    reaction (heading, what happened, why it matters, optional screenshot).
+    Emotion is conveyed by the card's left-border color, step number ring,
+    and meta label — no separate chart needed."""
+    if not reactions:
+        return ""
+
+    cards = "".join(
+        render_action_card(i, r, screenshots)
+        for i, r in enumerate(reactions, start=1)
+    )
+
+    return f'<div class="journey-stream">{cards}</div>'
 
 
 _IMG_TAG = re.compile(r'<img\b([^>]*)>', re.IGNORECASE)
@@ -424,13 +426,13 @@ body {{
   color: var(--accent); margin-bottom: 18px;
 }}
 h1.display {{
-  font-family: var(--serif); font-variation-settings: "opsz" 144;
-  font-weight: 480; font-size: clamp(48px, 8vw, 96px);
-  line-height: .98; letter-spacing: -0.02em; margin: 0 0 24px; color: var(--ink);
+  font-family: var(--sans);
+  font-weight: 700; font-size: clamp(44px, 7.5vw, 84px);
+  line-height: 1.02; letter-spacing: -0.025em; margin: 0 0 24px; color: var(--ink);
 }}
 .lede {{
-  font-family: var(--serif); font-variation-settings: "opsz" 18;
-  font-weight: 350; font-style: italic; font-size: 22px; line-height: 1.4;
+  font-family: var(--sans);
+  font-weight: 400; font-size: 20px; line-height: 1.45;
   color: var(--muted); margin: 0 0 32px; max-width: 56ch;
 }}
 
@@ -468,8 +470,8 @@ section {{ margin: 80px 0; scroll-margin-top: 32px; }}
   color: var(--muted); margin-bottom: 6px;
 }}
 .section-head h2 {{
-  font-family: var(--serif); font-variation-settings: "opsz" 60;
-  font-weight: 420; font-size: 32px; line-height: 1.1; letter-spacing: -.015em;
+  font-family: var(--sans);
+  font-weight: 700; font-size: 28px; line-height: 1.15; letter-spacing: -.02em;
   margin: 0; color: var(--ink);
 }}
 
@@ -477,18 +479,29 @@ section {{ margin: 80px 0; scroll-margin-top: 32px; }}
   background: var(--surface); border: 1px solid var(--hairline); border-radius: 6px;
   padding: 32px 40px; box-shadow: var(--shadow);
 }}
+/* Wide-bleed section: breaks out of the report container so dense
+   tables (e.g. the comparison) get more horizontal room. */
+section.bleed {{
+  width: min(1240px, calc(100vw - 32px));
+  margin-left: 50%;
+  transform: translateX(-50%);
+}}
 .prose {{ max-width: var(--measure); font-size: 16px; line-height: 1.7; color: var(--ink-2); }}
+/* Wide variant: removes the comfortable-reading width cap so tables fit. */
+.prose.prose-wide {{ max-width: none; }}
+.prose.prose-wide table {{ font-size: 13px; }}
+.prose.prose-wide td, .prose.prose-wide th {{ padding: 8px 10px; }}
 .prose > :first-child {{ margin-top: 0; }}
 .prose > :last-child {{ margin-bottom: 0; }}
-.prose h1, .prose h2, .prose h3, .prose h4 {{
-  font-family: var(--serif); color: var(--ink); letter-spacing: -.01em;
-  margin: 32px 0 12px; font-weight: 480; line-height: 1.25;
+.prose h1, .prose h2, .prose h4 {{
+  font-family: var(--sans); color: var(--ink); letter-spacing: -.015em;
+  margin: 32px 0 12px; font-weight: 700; line-height: 1.25;
 }}
-.prose h1 {{ font-size: 28px; font-variation-settings: "opsz" 80; }}
-.prose h2 {{ font-size: 22px; font-variation-settings: "opsz" 48; }}
+.prose h1 {{ font-size: 26px; }}
+.prose h2 {{ font-size: 20px; }}
 .prose h3 {{
   font-size: 16px; font-family: var(--mono); text-transform: uppercase;
-  letter-spacing: .14em; color: var(--accent); font-weight: 500; margin-top: 36px;
+  letter-spacing: .14em; color: var(--accent); font-weight: 500; margin: 36px 0 12px;
 }}
 .prose h4 {{ font-size: 16px; }}
 .prose p {{ margin: 0 0 16px; }}
@@ -537,137 +550,108 @@ section {{ margin: 80px 0; scroll-margin-top: 32px; }}
 .prose hr {{ border: 0; border-top: 1px solid var(--hairline); margin: 32px 0; }}
 .empty {{ color: var(--muted); font-style: italic; }}
 
-figure.journey {{
-  margin: 0; background: var(--surface); border: 1px solid var(--hairline);
-  border-radius: 6px; box-shadow: var(--shadow); overflow: hidden;
+/* Journey stream: a vertical sequence of action cards, one per reaction.
+   Emotion is conveyed by each card's left-border + step-number-ring color
+   and the meta label — no separate chart. */
+.journey-stream {{
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }}
-.journey-head {{
-  display: flex; justify-content: space-between; align-items: center;
-  flex-wrap: wrap; gap: 16px;
-  padding: 14px 24px; border-bottom: 1px solid var(--hairline);
-  background: var(--paper);
+.action-card {{
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-left: 3px solid var(--c, var(--rule));
+  border-radius: 0 5px 5px 0;
+  padding: 16px 22px 18px;
+  box-shadow: var(--shadow);
 }}
-.journey-head .title {{
-  font-family: var(--serif); font-style: italic; font-size: 15px;
-  color: var(--ink-2);
+.action-card .action-head {{
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 10px;
 }}
-.journey-head .legend {{
-  display: flex; flex-wrap: wrap; gap: 14px;
-  font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
-  color: var(--muted);
-}}
-.journey-head .legend span {{ display: inline-flex; align-items: center; gap: 6px; }}
-.journey-head .legend i {{
-  width: 8px; height: 8px; border-radius: 50%; display: inline-block;
-}}
-.journey-grid {{
-  display: grid;
-  grid-template-columns: 96px 1fr;
-  grid-template-rows: auto auto;
-  padding: 20px 24px 24px;
-  gap: 6px 16px;
-  align-items: stretch;
-}}
-.journey-grid .axis {{
-  display: grid; grid-template-rows: repeat(5, 1fr);
-  font-family: var(--mono); font-size: 9.5px; letter-spacing: .14em;
-  text-transform: uppercase; color: var(--muted);
-  text-align: right; padding-right: 14px;
-  border-right: 1px solid var(--hairline);
-}}
-.journey-grid .axis > div {{
-  display: flex; align-items: center; justify-content: flex-end;
-}}
-.journey-grid .track {{
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(var(--steps), 1fr);
-  grid-template-rows: repeat(5, 1fr);
-  height: 180px;
-  background-image:
-    linear-gradient(to bottom, var(--hairline) 0 1px, transparent 1px),
-    linear-gradient(to bottom, transparent calc(20% - 1px), var(--hairline) calc(20% - 1px) 20%);
-  background-position: 0 0, 0 0;
-  background-size: 100% 100%, 100% 100%;
-}}
-.journey-grid .track > svg.line {{
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  pointer-events: none;
-  fill: none;
-  stroke: var(--rule);
-  stroke-width: 1;
-  stroke-dasharray: 3 4;
-  vector-effect: non-scaling-stroke;
-}}
-.journey-grid .step {{
-  grid-column: var(--col); grid-row: calc(6 - var(--score));
-  align-self: center; justify-self: center;
-  position: relative; z-index: 2;
-}}
-.journey-grid .step .dot {{
-  display: block;
-  width: 12px; height: 12px;
+.action-card .step-num {{
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px;
+  border: 2px solid var(--c, var(--rule));
   border-radius: 50%;
-  background: var(--c);
-  box-shadow: 0 0 0 4px color-mix(in oklab, var(--c) 16%, transparent);
-}}
-.journey-grid .step:hover .dot {{
-  transform: scale(1.18);
-  box-shadow: 0 0 0 6px color-mix(in oklab, var(--c) 22%, transparent);
-}}
-.journey-grid .step .dot {{ transition: transform .15s ease, box-shadow .15s ease; }}
-.journey-grid .axis-spacer {{ }}
-.journey-grid .numbers {{
-  display: grid;
-  grid-template-columns: repeat(var(--steps), 1fr);
   font-family: var(--mono);
-  border-top: 1px solid var(--hairline);
-  padding-top: 10px;
-  min-height: 150px;
-  position: relative;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--c, var(--ink-2));
+  background: var(--surface);
+  flex-shrink: 0;
 }}
-.journey-grid .numbers .num {{
-  position: relative;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
+.action-card .meta {{
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--c, var(--muted));
 }}
-.journey-grid .numbers .num::before {{
-  content: "";
-  position: absolute;
-  top: -10px; left: 50%;
-  width: 1px; height: 6px;
-  background: var(--rule);
+.action-card .heading {{
+  font-family: var(--sans);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--ink);
+  margin: 0 0 12px;
+  letter-spacing: -.005em;
 }}
-.journey-grid .numbers .num b {{
+.action-card .narrative {{
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  margin: 0 0 12px;
+}}
+.action-card .narrative:last-child {{ margin-bottom: 0; }}
+.action-card img {{
   display: block;
-  font-weight: 500;
-  font-size: 11px;
-  color: var(--ink-2);
-  letter-spacing: .04em;
-  margin-bottom: 6px;
+  max-width: 100%;
+  height: auto;
+  margin: 14px 0 0;
+  border-radius: 4px;
+  border: 1px solid var(--hairline);
 }}
-.journey-grid .numbers .num em {{
-  position: absolute;
-  top: 28px; left: 50%;
+.action-card .terminal-output {{
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-radius: 4px;
+  border: 1px solid var(--hairline);
+  background: #1a1a1a;
+  color: #f4f0e6;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.55;
+}}
+.action-card .terminal-output code {{
+  font-family: inherit;
+}}
+.action-card .takeaway {{
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: color-mix(in oklab, var(--c, var(--rule)) 6%, transparent);
+  border-radius: 3px;
+}}
+.action-card .takeaway-label {{
   display: inline-block;
-  font-style: normal;
-  font-size: 11px;
-  font-family: var(--serif);
-  font-variation-settings: "opsz" 14;
-  color: var(--ink-2);
-  letter-spacing: 0;
-  white-space: nowrap;
-  transform: rotate(-45deg);
-  transform-origin: top left;
-  padding-left: 2px;
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--c, var(--muted));
+  margin-bottom: 3px;
 }}
-.journey-grid .step:hover ~ .numbers em,
-.journey-grid:hover .numbers em {{ color: var(--ink); }}
-
+.action-card .takeaway p {{
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink);
+  margin: 0;
+  font-variation-settings: "opsz" 24;
+}}
 .strip {{
   display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 16px; margin-top: 8px;
@@ -691,7 +675,9 @@ figure.journey {{
 details.journal {{
   background: var(--surface); border: 1px solid var(--hairline);
   border-radius: 6px; box-shadow: var(--shadow); overflow: hidden;
+  margin-bottom: 12px;
 }}
+details.journal:last-child {{ margin-bottom: 0; }}
 details.journal > summary {{
   cursor: pointer; list-style: none;
   padding: 18px 24px;
@@ -761,41 +747,23 @@ footer {{
 
   {journey_section}
 
-  <section id="reactions">
-    <header class="section-head">
-      <div class="numeral">§I</div>
-      <div>
-        <div class="label">Chapter one</div>
-        <h2>Reactions</h2>
-      </div>
-    </header>
-    <div class="card prose">{reactions_html}</div>
-  </section>
-
-  <section id="discovered-specs">
-    <header class="section-head">
-      <div class="numeral">§II</div>
-      <div>
-        <div class="label">Chapter two</div>
-        <h2>Discovered specs</h2>
-      </div>
-    </header>
-    <div class="card prose">{specs_html}</div>
-  </section>
-
   {comparison_section}
 
-  <section id="journal">
+  <section id="reference">
     <header class="section-head">
-      <div class="numeral">§IV</div>
+      <div class="numeral">§III</div>
       <div>
-        <div class="label">Appendix</div>
-        <h2>Exploration journal</h2>
+        <div class="label">Reference</div>
+        <h2>Source artifacts</h2>
       </div>
     </header>
-    <details class="journal">
-      <summary>Open the full journal</summary>
+    <details class="journal" id="journal">
+      <summary>Exploration journal</summary>
       <div class="body prose">{journal_html}</div>
+    </details>
+    <details class="journal" id="discovered-specs">
+      <summary>Discovered specs</summary>
+      <div class="body prose">{specs_html}</div>
     </details>
   </section>
 
@@ -820,28 +788,29 @@ def render_html(data: TrialData) -> str:
         sub_bits.append(f"{len(data.screenshots)} screenshots")
     sub = " · ".join(sub_bits) if sub_bits else "No artifacts yet"
 
-    toc = [
-        ("#journey", "Journey"),
-        ("#reactions", "Reactions"),
-        ("#discovered-specs", "Discovered Specs"),
-        ("#comparison", "Comparison"),
-        ("#journal", "Journal"),
-        ("#screenshots", "Screenshots"),
-    ]
+    toc = []
+    if data.reactions:
+        toc.append(("#journey", "Journey"))
+    if data.comparison_md.strip():
+        toc.append(("#comparison", "Comparison"))
+    toc.append(("#reference", "Reference"))
+    if data.screenshots:
+        toc.append(("#screenshots", "Screenshots"))
     toc_links = "".join(f'<a href="{href}">{label}</a>' for href, label in toc)
 
-    journey_chart = render_emotion_journey(data.persona_name, data.reactions)
-    if journey_chart:
+    journal_html = md_to_html(data.journal_md, data.screenshots)
+    journey_spread = render_journey_spread(data.reactions, data.screenshots)
+    if journey_spread:
         journey_section = (
             '<section id="journey">'
             '<header class="section-head">'
-            '<div class="numeral">§0</div>'
+            '<div class="numeral">§I</div>'
             '<div>'
-            '<div class="label">Prologue</div>'
-            '<h2>User journey</h2>'
+            '<div class="label">The trial</div>'
+            '<h2>Journey</h2>'
             '</div>'
             '</header>'
-            f'{journey_chart}'
+            f'{journey_spread}'
             '</section>'
         )
     else:
@@ -849,15 +818,15 @@ def render_html(data: TrialData) -> str:
 
     if data.comparison_md.strip():
         comparison_section = (
-            '<section id="comparison">'
+            '<section id="comparison" class="bleed">'
             '<header class="section-head">'
-            '<div class="numeral">§III</div>'
+            '<div class="numeral">§II</div>'
             '<div>'
-            '<div class="label">Chapter three</div>'
+            '<div class="label">Findings</div>'
             '<h2>Comparison vs actual specs</h2>'
             '</div>'
             '</header>'
-            f'<div class="card prose">{md_to_html(data.comparison_md, data.screenshots)}</div>'
+            f'<div class="card prose prose-wide">{md_to_html(data.comparison_md, data.screenshots)}</div>'
             "</section>"
         )
     else:
@@ -867,7 +836,7 @@ def render_html(data: TrialData) -> str:
         screenshots_section = (
             '<section id="screenshots">'
             '<header class="section-head">'
-            '<div class="numeral">§V</div>'
+            '<div class="numeral">§IV</div>'
             '<div>'
             '<div class="label">Plates</div>'
             '<h2>Screenshots</h2>'
@@ -887,9 +856,8 @@ def render_html(data: TrialData) -> str:
         toc_links=toc_links,
         journey_section=journey_section,
         specs_html=md_to_html(data.specs_md, data.screenshots),
-        reactions_html=md_to_html(data.reactions_md, data.screenshots),
         comparison_section=comparison_section,
-        journal_html=md_to_html(data.journal_md, data.screenshots),
+        journal_html=journal_html,
         screenshots_section=screenshots_section,
     )
 
