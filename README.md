@@ -42,7 +42,11 @@ demand.
 ## Install
 
 ```bash
-claude plugin install blindspots from btucker/blindspots
+# Add the marketplace (one-time)
+claude plugin marketplace add btucker/blindspots
+
+# Install the plugin
+claude plugin install blindspots@blindspots
 ```
 
 ## Setup
